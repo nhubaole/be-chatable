@@ -1,5 +1,5 @@
 
-using ChatableBE.Models;
+using chatable.Models;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.IdentityModel.Tokens;
