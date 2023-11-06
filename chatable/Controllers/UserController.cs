@@ -1,7 +1,9 @@
 ﻿using chatable.Contacts.Responses;
 using chatable.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Supabase;
+using System.Security.Claims;
 
 namespace chatable.Controllers
 {
@@ -11,16 +13,24 @@ namespace chatable.Controllers
     {
         // Get user by id
         [HttpGet("{UserName}")]
+        [Authorize]
         public async Task<ActionResult<User>> GetUserById(string UserName, [FromServices] Client client)
         {
+            var currentUser = GetCurrentUser();
             try
             {
                 var response = await client.From<User>().Where(x => x.UserName == UserName).Get();
                 var user = response.Models.FirstOrDefault();
+
                 if (user is null)
                 {
                     throw new Exception();
                 }
+                if (currentUser.UserName != UserName)
+                {
+                    throw new FormatException();
+                }
+
                 var userResponse = new UserResponse
                 {
                     UserName = user.UserName,
@@ -33,6 +43,14 @@ namespace chatable.Controllers
                     Success = true,
                     Message = "Successfuly",
                     Data = userResponse
+                });
+            }
+            catch (FormatException)
+            {
+                return StatusCode(403, new ApiResponse
+                {
+                    Success = false,
+                    Message = "Access denied."
                 });
             }
             catch (Exception)
@@ -86,6 +104,22 @@ namespace chatable.Controllers
                 });
             }
 
+        }
+        private User GetCurrentUser()
+        {
+            var identity = HttpContext.User.Identity as ClaimsIdentity;
+
+            if (identity != null)
+            {
+                var userClaims = identity.Claims;
+
+                return new User
+                {
+                    UserName = userClaims.FirstOrDefault(o => o.Type == ClaimTypes.NameIdentifier)?.Value,
+                    FullName = userClaims.FirstOrDefault(o => o.Type == ClaimTypes.Name)?.Value,
+                };
+            }
+            return null;
         }
     }
 

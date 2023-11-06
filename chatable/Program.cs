@@ -39,22 +39,13 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
         {
             ValidateAudience = false,
             ValidateIssuer = false,
-
             ValidateIssuerSigningKey = true,
             IssuerSigningKey = new SymmetricSecurityKey(secretKeyBytes),
             ClockSkew = TimeSpan.Zero
         };
     });
-builder.Services.AddAuthorizationBuilder().AddPolicy("owner", p =>
-{
-    p.RequireClaim("UserName");
-    //p.RequireClaim("TokenId", Guid.NewGuid().ToString());
-    p.RequireRole("owner");
-});
-//builder.Services.AddAuthorization(options =>
-//{
-//    options.AddPolicy("owner", p => p.RequireClaim("TokenId"));
-//});
+
+builder.Services.AddAuthorization();
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
@@ -63,10 +54,6 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI();
 }
-//var options = new Supabase.SupabaseOptions
-//{
-//    AutoConnectRealtime = true
-//};
 app.MapControllers();
 
 app.UseHttpsRedirection();

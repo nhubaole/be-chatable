@@ -4,6 +4,7 @@ using chatable.Contacts.Requests;
 using chatable.Contacts.Responses;
 using chatable.Models;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.IdentityModel.Tokens;
 using Supabase;
 using System.IdentityModel.Tokens.Jwt;
@@ -114,13 +115,10 @@ namespace chatable.Controllers
             {
                 Subject = new ClaimsIdentity(new[]
                 {
-                    new Claim("UserName", user.UserName),
-                    
-                    //new Claim("FullName", user.FullName),
-
-                    //new Claim("TokenId", Guid.NewGuid().ToString()),
-                    new Claim(ClaimTypes.Role, "owner")
+                    new Claim(ClaimTypes.NameIdentifier, user.UserName),
+                    new Claim(ClaimTypes.Name, user.FullName)
                 }),
+
                 Expires = DateTime.UtcNow.AddMinutes(1),
                 SigningCredentials = new SigningCredentials(
                     new SymmetricSecurityKey(secretKeyBytes), SecurityAlgorithms.HmacSha512Signature)
