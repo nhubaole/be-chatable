@@ -1,15 +1,17 @@
-﻿
-using BCrypt.Net;
+﻿using BCrypt.Net;
 using chatable.Contacts.Requests;
 using chatable.Contacts.Responses;
 using chatable.Models;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.IdentityModel.Tokens;
+using Microsoft.Owin.Host.SystemWeb;
 using Supabase;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
+using System.Web;
 
 namespace chatable.Controllers
 {
@@ -19,9 +21,11 @@ namespace chatable.Controllers
     public class AuthController : Controller
     {
         private readonly IConfiguration _configuration;
+
         public AuthController(IConfiguration configuration)
         {
             _configuration = configuration;
+
         }
 
         [HttpPost("register")]
@@ -84,11 +88,19 @@ namespace chatable.Controllers
                 {
                     throw new UnauthorizedAccessException();
                 }
+                var token = GenerateToken(user);
+                Response.Cookies.Append("jwt", token, new CookieOptions //Save the JWT in the browser cookies, Key is "jwt"
+                {
+                    HttpOnly = true,
+                    SameSite = SameSiteMode.None,
+                    Secure = true
+                });
+
                 return Ok(new ApiResponse
                 {
                     Success = true,
                     Message = "Login successfully",
-                    Data = GenerateToken(user)
+                    Data = token
                 });
             }
             catch (UnauthorizedAccessException)
@@ -105,6 +117,32 @@ namespace chatable.Controllers
             }
 
         }
+
+        [HttpPost("logout")]
+        [Authorize]
+        public async Task<IActionResult> Logout()
+        {
+            try
+            {
+                Response.Cookies.Delete("jwt");
+
+                return Ok(new ApiResponse
+                {
+                    Success = true,
+                    Message = "Logged out."
+                });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new ApiResponse
+                {
+                    Success = false,
+                    Message = ex.Message
+                });
+            }
+
+
+        }
         private string GenerateToken(User user)
         {
             var jwtTokenHandler = new JwtSecurityTokenHandler();
@@ -119,7 +157,7 @@ namespace chatable.Controllers
                     new Claim(ClaimTypes.Name, user.FullName)
                 }),
 
-                Expires = DateTime.UtcNow.AddMinutes(1),
+                Expires = DateTime.UtcNow.AddMinutes(60),
                 SigningCredentials = new SigningCredentials(
                     new SymmetricSecurityKey(secretKeyBytes), SecurityAlgorithms.HmacSha512Signature)
             };

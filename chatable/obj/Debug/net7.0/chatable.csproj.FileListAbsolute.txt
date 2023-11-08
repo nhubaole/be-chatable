@@ -56,3 +56,6 @@ D:\Data\chatable\chatable\obj\Debug\net7.0\refint\chatable.dll
 D:\Data\chatable\chatable\obj\Debug\net7.0\chatable.pdb
 D:\Data\chatable\chatable\obj\Debug\net7.0\chatable.genruntimeconfig.cache
 D:\Data\chatable\chatable\obj\Debug\net7.0\ref\chatable.dll
+D:\Data\chatable\chatable\bin\Debug\net7.0\Microsoft.Owin.dll
+D:\Data\chatable\chatable\bin\Debug\net7.0\Microsoft.Owin.Host.SystemWeb.dll
+D:\Data\chatable\chatable\bin\Debug\net7.0\Owin.dll
