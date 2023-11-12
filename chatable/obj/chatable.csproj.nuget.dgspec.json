@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "D:\\Data\\chatable\\chatable\\chatable.csproj": {}
+    "D:\\Data\\UIT\\chatable\\chatable.csproj": {}
   },
   "projects": {
-    "D:\\Data\\chatable\\chatable\\chatable.csproj": {
+    "D:\\Data\\UIT\\chatable\\chatable.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "D:\\Data\\chatable\\chatable\\chatable.csproj",
+        "projectUniqueName": "D:\\Data\\UIT\\chatable\\chatable.csproj",
         "projectName": "chatable",
-        "projectPath": "D:\\Data\\chatable\\chatable\\chatable.csproj",
+        "projectPath": "D:\\Data\\UIT\\chatable\\chatable.csproj",
         "packagesPath": "C:\\Users\\Ms.Trang\\.nuget\\packages\\",
-        "outputPath": "D:\\Data\\chatable\\chatable\\obj\\",
+        "outputPath": "D:\\Data\\UIT\\chatable\\obj\\",
         "projectStyle": "PackageReference",
         "configFilePaths": [
           "C:\\Users\\Ms.Trang\\AppData\\Roaming\\NuGet\\NuGet.Config",
@@ -55,6 +55,14 @@
             "Microsoft.AspNetCore.OpenApi": {
               "target": "Package",
               "version": "[7.0.12, )"
+            },
+            "Microsoft.Owin": {
+              "target": "Package",
+              "version": "[4.2.2, )"
+            },
+            "Microsoft.Owin.Host.SystemWeb": {
+              "target": "Package",
+              "version": "[4.2.2, )"
             },
             "ScottBrady.IdentityModel.AspNetCore": {
               "target": "Package",

@@ -2,16 +2,15 @@
 using chatable.Contacts.Requests;
 using chatable.Contacts.Responses;
 using chatable.Models;
+using chatable.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
-using Microsoft.Owin.Host.SystemWeb;
 using Supabase;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
-using System.Web;
 
 namespace chatable.Controllers
 {
@@ -47,7 +46,11 @@ namespace chatable.Controllers
                 {
                     UserName = userRequest.UserName,
                     FullName = userRequest.FullName,
+                    Avatar = userRequest.Avatar,
+                    DOB = userRequest.DOB,
+                    Gender = userRequest.Gender,
                     Password = passwordHash,
+                    LastTimeOnl = DateTime.Now,
                     CreatedAt = DateTime.Now
                 };
 
@@ -88,7 +91,7 @@ namespace chatable.Controllers
                 {
                     throw new UnauthorizedAccessException();
                 }
-                var token = GenerateToken(user);
+                var token = TokenManager.GenerateToken(user, _configuration);
                 Response.Cookies.Append("jwt", token, new CookieOptions //Save the JWT in the browser cookies, Key is "jwt"
                 {
                     HttpOnly = true,
@@ -143,27 +146,7 @@ namespace chatable.Controllers
 
 
         }
-        private string GenerateToken(User user)
-        {
-            var jwtTokenHandler = new JwtSecurityTokenHandler();
-            var secretKey = _configuration.GetValue<string>("AppSettings:SecretKey");
-            var secretKeyBytes = Encoding.UTF8.GetBytes(secretKey);
 
-            var tokenDescription = new SecurityTokenDescriptor
-            {
-                Subject = new ClaimsIdentity(new[]
-                {
-                    new Claim(ClaimTypes.NameIdentifier, user.UserName),
-                    new Claim(ClaimTypes.Name, user.FullName)
-                }),
-
-                Expires = DateTime.UtcNow.AddMinutes(60),
-                SigningCredentials = new SigningCredentials(
-                    new SymmetricSecurityKey(secretKeyBytes), SecurityAlgorithms.HmacSha512Signature)
-            };
-            var token = jwtTokenHandler.CreateToken(tokenDescription);
-            return jwtTokenHandler.WriteToken(token);
-        }
 
     }
 
