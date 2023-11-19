@@ -19,8 +19,6 @@ builder.Services.AddControllers().AddNewtonsoftJson();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
-builder.Services.AddAuthorization();
-
 builder.Services.AddSignalR();
 
 builder.Services.AddScoped<Supabase.Client>(_ =>
@@ -51,12 +49,14 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
         {
             OnMessageReceived = context =>
             {
-                context.Token = context.Request.Cookies["jwt"];
+                context.Token = context.Request.Query["access_token"];
+
                 return Task.CompletedTask;
             }
         };
     });
 
+builder.Services.AddAuthorization();
 
 var app = builder.Build();
 

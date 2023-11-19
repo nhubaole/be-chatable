@@ -1,15 +1,18 @@
 ﻿using chatable.Contacts.Requests;
+using chatable.Contacts.Responses;
 using chatable.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.Build.Experimental.ProjectCache;
+using Microsoft.IdentityModel.Tokens;
 using Supabase;
 using System.Security.Claims;
 
 namespace chatable.Hubs
 {
-    public class MessagesHub : Hub
+    [Authorize]
+    public sealed class MessagesHub : Hub
     {
         private readonly Client _supabaseClient;
         private IHttpContextAccessor _httpContextAccessor;
@@ -20,23 +23,97 @@ namespace chatable.Hubs
             _supabaseClient = supabaseClient;
         }
 
-        public async Task SendPeerMessage(String toUsername, MessageRequest messageRequest)
+        public async Task SendPeerMessage(String toUsername, String messageType, String content)
         {
-            //var receiver = await _supabaseClient.From<User>().Where(x => x.UserName == sender.UserName).Get();
+            var senderId = Context.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            var response = await _supabaseClient.From<Connection>().Where(x => x.UserId == toUsername).Get();
+            var receiver = response.Models.FirstOrDefault();
+
+            var messageRes = new MessageResponse()
+            {
+                SenderId = senderId,
+                MessageType = messageType,
+                Content = content,
+            };
+
+            await Clients
+            .Client(receiver.ConnectionId)
+            .SendAsync("MessageReceived", messageRes);
+
+            String conversationId = await getConversationId(senderId, receiver.UserId);
+
+            Message message = new Message()
+            {
+                SenderId = senderId.ToString(),
+                MessageType = messageType,
+                Content = content,
+                SentAt = DateTime.UtcNow,
+                ConversationId = conversationId
+            };
+
+            var responseInsertMsg = await _supabaseClient.From<Message>().Insert(message);
+            var insertedMsg = responseInsertMsg.Models.FirstOrDefault();
+
+            updateConversation(conversationId, insertedMsg);
+        }
+
+        public async Task<String> getConversationId(String senderId, String receiverId)
+        {
+            try
+            {
+                String opt1 = senderId + "_" + receiverId;
+                String opt2 = receiverId + "_" + senderId;
+                var response = await _supabaseClient.From<Conversation>()
+                                                  .Where(x => x.ConversationId == opt1 || x.ConversationId == opt2)
+                                                  .Get();
+                var conversation = response.Models.FirstOrDefault();
+                if (conversation != null)
+                {
+                    return conversation.ConversationId;
+                }
+                else
+                {
+                    await _supabaseClient
+                    .From<Conversation>()
+                    .Insert(
+                    new Conversation
+                    {
+                        ConversationId = $"{senderId}_{receiverId}",
+                        ConversationType = "Peer",
+                        LastMessage = 1,
+                        UnreadMessageCount = 0
+                    }
+                    );
+                    return $"{senderId}_{receiverId}";
+                }
+            }
+
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Lỗi trong hàm getConversationId: {ex.Message}");
+                throw; 
+            }
+        }
+
+        public async void updateConversation(String conversationId, Message lastMessage)
+        {
+            await _supabaseClient.From<Conversation>()
+                   .Where(x => x.ConversationId == conversationId)
+                   .Set(x => x.LastMessage, lastMessage.MessageId)
+                   .Update();
         }
 
         public override async Task OnConnectedAsync()
         {
             await base.OnConnectedAsync();
             var userId = Context.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            var username = Context.User.Identity.Name;
-            if (username is null) return;
-            Console.WriteLine($"---> {username} just joined the chat");
+            if (userId is null) return;
+            Console.WriteLine($"---> {userId} just joined the chat");
 
             var response = await _supabaseClient
                 .From<Connection>()
                 .Insert(
-                new Connection { UserId = username, ConnectionId = Context.ConnectionId }
+                new Connection { UserId = userId, ConnectionId = Context.ConnectionId }
                 );
 
         }
@@ -44,9 +121,11 @@ namespace chatable.Hubs
         public override async Task OnDisconnectedAsync(Exception? exception)
         {
             await base.OnDisconnectedAsync(exception);
-            //if (user is null) return;
-            //Console.WriteLine($"---> {user.UserName} left the chat right now");
-            //await _supabaseClient.From<Connection>().Where(e => e.UserId == user.UserName).Delete();
+            var userId = Context.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            //var username = Context.User.Identity.Name;
+            if (userId is null) return;
+            Console.WriteLine($"---> {userId} left the chat right now");
+            await _supabaseClient.From<Connection>().Where(e => e.UserId == userId).Delete();
         }
 
         private User GetCurrentUser()

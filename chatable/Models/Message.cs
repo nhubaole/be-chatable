@@ -21,13 +21,7 @@ namespace chatable.Models
         [Column("message_type")]
         public string MessageType { get; set; }
 
-        [Column("text_content")]
-        public string TextContent { get; set; }
-
-        [Column("image_content")]
-        public string ImageContent { get; set; }
-
-        [Column("audio_content")]
-        public string AudioContent { get; set; }
+        [Column("content")]
+        public string Content { get; set; }
     }
 }

@@ -6,7 +6,7 @@ namespace chatable.Models
     [Table("_user_connections")]
     public class Connection : BaseModel
     {
-        [PrimaryKey("connection_id", false)]
+        [PrimaryKey("connection_id", true)]
         public string ConnectionId { get; set; }
 
         [Column("user_id")]
