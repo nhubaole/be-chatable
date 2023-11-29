@@ -6,6 +6,10 @@ namespace chatable.Contacts.Requests
     {
         public string? UserName { get; set; }
         public string? FullName { get; set; }
+        public string? Avatar { get; set; }
+        [DataType(DataType.DateTime)]
+        public DateTime DOB { get; set; }
+        public string Gender { get; set; }
 
         [Required]
         [DataType(DataType.Password)]

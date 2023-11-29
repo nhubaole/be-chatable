@@ -1,8 +1,10 @@
-﻿
-using BCrypt.Net;
+﻿using BCrypt.Net;
 using chatable.Contacts.Requests;
 using chatable.Contacts.Responses;
 using chatable.Models;
+using chatable.Services;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
 using Supabase;
@@ -18,9 +20,11 @@ namespace chatable.Controllers
     public class AuthController : Controller
     {
         private readonly IConfiguration _configuration;
+
         public AuthController(IConfiguration configuration)
         {
             _configuration = configuration;
+
         }
 
         [HttpPost("register")]
@@ -42,7 +46,11 @@ namespace chatable.Controllers
                 {
                     UserName = userRequest.UserName,
                     FullName = userRequest.FullName,
+                    Avatar = userRequest.Avatar,
+                    DOB = userRequest.DOB,
+                    Gender = userRequest.Gender,
                     Password = passwordHash,
+                    LastTimeOnl = DateTime.Now,
                     CreatedAt = DateTime.Now
                 };
 
@@ -83,11 +91,19 @@ namespace chatable.Controllers
                 {
                     throw new UnauthorizedAccessException();
                 }
+                var token = TokenManager.GenerateToken(user, _configuration);
+                Response.Cookies.Append("jwt", token, new CookieOptions //Save the JWT in the browser cookies, Key is "jwt"
+                {
+                    HttpOnly = true,
+                    SameSite = SameSiteMode.None,
+                    Secure = true
+                });
+
                 return Ok(new ApiResponse
                 {
                     Success = true,
                     Message = "Login successfully",
-                    Data = GenerateToken(user)
+                    Data = token
                 });
             }
             catch (UnauthorizedAccessException)
@@ -104,30 +120,33 @@ namespace chatable.Controllers
             }
 
         }
-        private string GenerateToken(User user)
+
+        [HttpPost("logout")]
+        [Authorize]
+        public async Task<IActionResult> Logout()
         {
-            var jwtTokenHandler = new JwtSecurityTokenHandler();
-            var secretKey = _configuration.GetValue<string>("AppSettings:SecretKey");
-            var secretKeyBytes = Encoding.UTF8.GetBytes(secretKey);
-
-            var tokenDescription = new SecurityTokenDescriptor
+            try
             {
-                Subject = new ClaimsIdentity(new[]
-                {
-                    new Claim("UserName", user.UserName),
-                    
-                    //new Claim("FullName", user.FullName),
+                Response.Cookies.Delete("jwt");
 
-                    //new Claim("TokenId", Guid.NewGuid().ToString()),
-                    new Claim(ClaimTypes.Role, "owner")
-                }),
-                Expires = DateTime.UtcNow.AddMinutes(1),
-                SigningCredentials = new SigningCredentials(
-                    new SymmetricSecurityKey(secretKeyBytes), SecurityAlgorithms.HmacSha512Signature)
-            };
-            var token = jwtTokenHandler.CreateToken(tokenDescription);
-            return jwtTokenHandler.WriteToken(token);
+                return Ok(new ApiResponse
+                {
+                    Success = true,
+                    Message = "Logged out."
+                });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new ApiResponse
+                {
+                    Success = false,
+                    Message = ex.Message
+                });
+            }
+
+
         }
+
 
     }
 
