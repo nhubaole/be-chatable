@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "C:\\Users\\ADMIN\\source\\repos\\be-chatable2\\chatable\\chatable.csproj": {}
+    "C:\\Users\\ADMIN\\Source\\Repos\\be-chatable3\\chatable\\chatable.csproj": {}
   },
   "projects": {
-    "C:\\Users\\ADMIN\\source\\repos\\be-chatable2\\chatable\\chatable.csproj": {
+    "C:\\Users\\ADMIN\\Source\\Repos\\be-chatable3\\chatable\\chatable.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Users\\ADMIN\\source\\repos\\be-chatable2\\chatable\\chatable.csproj",
+        "projectUniqueName": "C:\\Users\\ADMIN\\Source\\Repos\\be-chatable3\\chatable\\chatable.csproj",
         "projectName": "chatable",
-        "projectPath": "C:\\Users\\ADMIN\\source\\repos\\be-chatable2\\chatable\\chatable.csproj",
+        "projectPath": "C:\\Users\\ADMIN\\Source\\Repos\\be-chatable3\\chatable\\chatable.csproj",
         "packagesPath": "C:\\Users\\ADMIN\\.nuget\\packages\\",
-        "outputPath": "C:\\Users\\ADMIN\\source\\repos\\be-chatable2\\chatable\\obj\\",
+        "outputPath": "C:\\Users\\ADMIN\\Source\\Repos\\be-chatable3\\chatable\\obj\\",
         "projectStyle": "PackageReference",
         "configFilePaths": [
           "C:\\Users\\ADMIN\\AppData\\Roaming\\NuGet\\NuGet.Config",
@@ -55,10 +55,6 @@
             "Microsoft.AspNetCore.OpenApi": {
               "target": "Package",
               "version": "[7.0.12, )"
-            },
-            "Microsoft.Build": {
-              "target": "Package",
-              "version": "[17.8.3, )"
             },
             "Microsoft.Owin": {
               "target": "Package",
