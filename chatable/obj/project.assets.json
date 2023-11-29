@@ -3618,19 +3618,19 @@
     ]
   },
   "packageFolders": {
-    "C:\\Users\\Ms.Trang\\.nuget\\packages\\": {}
+    "C:\\Users\\ADMIN\\.nuget\\packages\\": {}
   },
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "D:\\Data\\UIT\\chatable\\chatable.csproj",
+      "projectUniqueName": "C:\\Users\\ADMIN\\Source\\Repos\\be-chatable3\\chatable\\chatable.csproj",
       "projectName": "chatable",
-      "projectPath": "D:\\Data\\UIT\\chatable\\chatable.csproj",
-      "packagesPath": "C:\\Users\\Ms.Trang\\.nuget\\packages\\",
-      "outputPath": "D:\\Data\\UIT\\chatable\\obj\\",
+      "projectPath": "C:\\Users\\ADMIN\\Source\\Repos\\be-chatable3\\chatable\\chatable.csproj",
+      "packagesPath": "C:\\Users\\ADMIN\\.nuget\\packages\\",
+      "outputPath": "C:\\Users\\ADMIN\\Source\\Repos\\be-chatable3\\chatable\\obj\\",
       "projectStyle": "PackageReference",
       "configFilePaths": [
-        "C:\\Users\\Ms.Trang\\AppData\\Roaming\\NuGet\\NuGet.Config",
+        "C:\\Users\\ADMIN\\AppData\\Roaming\\NuGet\\NuGet.Config",
         "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
       ],
       "originalTargetFrameworks": [
@@ -3712,7 +3712,7 @@
             "privateAssets": "all"
           }
         },
-        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\7.0.402\\RuntimeIdentifierGraph.json"
+        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\7.0.403\\RuntimeIdentifierGraph.json"
       }
     }
   },
