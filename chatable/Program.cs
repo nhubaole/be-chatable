@@ -49,7 +49,18 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
         {
             OnMessageReceived = context =>
             {
-                context.Token = context.Request.Query["access_token"];
+                var accessToken = context.Request.Query["access_token"];
+                var path = context.HttpContext.Request.Path;
+
+                if (!string.IsNullOrEmpty(accessToken) &&
+                    (path.StartsWithSegments("/messages-hub")))
+                {
+                    context.Token = accessToken;
+                }
+                else
+                {
+                    context.Token = context.Request.Cookies["jwt"];
+                }
 
                 return Task.CompletedTask;
             }
