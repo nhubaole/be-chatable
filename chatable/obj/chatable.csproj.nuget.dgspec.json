@@ -1,20 +1,20 @@
 {
   "format": 1,
   "restore": {
-    "D:\\Data\\chatable\\chatable\\chatable.csproj": {}
+    "C:\\Users\\ADMIN\\Source\\Repos\\be-chatable3\\chatable\\chatable.csproj": {}
   },
   "projects": {
-    "D:\\Data\\chatable\\chatable\\chatable.csproj": {
+    "C:\\Users\\ADMIN\\Source\\Repos\\be-chatable3\\chatable\\chatable.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "D:\\Data\\chatable\\chatable\\chatable.csproj",
+        "projectUniqueName": "C:\\Users\\ADMIN\\Source\\Repos\\be-chatable3\\chatable\\chatable.csproj",
         "projectName": "chatable",
-        "projectPath": "D:\\Data\\chatable\\chatable\\chatable.csproj",
-        "packagesPath": "C:\\Users\\Ms.Trang\\.nuget\\packages\\",
-        "outputPath": "D:\\Data\\chatable\\chatable\\obj\\",
+        "projectPath": "C:\\Users\\ADMIN\\Source\\Repos\\be-chatable3\\chatable\\chatable.csproj",
+        "packagesPath": "C:\\Users\\ADMIN\\.nuget\\packages\\",
+        "outputPath": "C:\\Users\\ADMIN\\Source\\Repos\\be-chatable3\\chatable\\obj\\",
         "projectStyle": "PackageReference",
         "configFilePaths": [
-          "C:\\Users\\Ms.Trang\\AppData\\Roaming\\NuGet\\NuGet.Config",
+          "C:\\Users\\ADMIN\\AppData\\Roaming\\NuGet\\NuGet.Config",
           "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
         ],
         "originalTargetFrameworks": [
@@ -56,6 +56,18 @@
               "target": "Package",
               "version": "[7.0.12, )"
             },
+            "Microsoft.Build": {
+              "target": "Package",
+              "version": "[17.8.3, )"
+            },
+            "Microsoft.Owin": {
+              "target": "Package",
+              "version": "[4.2.2, )"
+            },
+            "Microsoft.Owin.Host.SystemWeb": {
+              "target": "Package",
+              "version": "[4.2.2, )"
+            },
             "ScottBrady.IdentityModel.AspNetCore": {
               "target": "Package",
               "version": "[2.0.0, )"
@@ -88,7 +100,7 @@
               "privateAssets": "all"
             }
           },
-          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\7.0.402\\RuntimeIdentifierGraph.json"
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\7.0.403\\RuntimeIdentifierGraph.json"
         }
       }
     }

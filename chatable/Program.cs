@@ -1,4 +1,5 @@
 
+using chatable.Hubs;
 using chatable.Models;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
@@ -18,6 +19,7 @@ builder.Services.AddControllers().AddNewtonsoftJson();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+builder.Services.AddSignalR();
 
 builder.Services.AddScoped<Supabase.Client>(_ =>
 
@@ -39,22 +41,34 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
         {
             ValidateAudience = false,
             ValidateIssuer = false,
-
             ValidateIssuerSigningKey = true,
             IssuerSigningKey = new SymmetricSecurityKey(secretKeyBytes),
             ClockSkew = TimeSpan.Zero
         };
+        opt.Events = new JwtBearerEvents
+        {
+            OnMessageReceived = context =>
+            {
+                var accessToken = context.Request.Query["access_token"];
+                var path = context.HttpContext.Request.Path;
+
+                if (!string.IsNullOrEmpty(accessToken) &&
+                    (path.StartsWithSegments("/messages-hub")))
+                {
+                    context.Token = accessToken;
+                }
+                else
+                {
+                    context.Token = context.Request.Cookies["jwt"];
+                }
+
+                return Task.CompletedTask;
+            }
+        };
     });
-builder.Services.AddAuthorizationBuilder().AddPolicy("owner", p =>
-{
-    p.RequireClaim("UserName");
-    //p.RequireClaim("TokenId", Guid.NewGuid().ToString());
-    p.RequireRole("owner");
-});
-//builder.Services.AddAuthorization(options =>
-//{
-//    options.AddPolicy("owner", p => p.RequireClaim("TokenId"));
-//});
+
+builder.Services.AddAuthorization();
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
@@ -63,10 +77,7 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI();
 }
-//var options = new Supabase.SupabaseOptions
-//{
-//    AutoConnectRealtime = true
-//};
+
 app.MapControllers();
 
 app.UseHttpsRedirection();
@@ -74,5 +85,7 @@ app.UseHttpsRedirection();
 app.UseAuthentication();
 
 app.UseAuthorization();
+
+app.MapHub<MessagesHub>("messages-hub");
 
 app.Run();
