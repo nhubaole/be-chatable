@@ -1,32 +1,30 @@
 {
   "format": 1,
   "restore": {
-    "C:\\Users\\ADMIN\\Source\\Repos\\be-chatable3\\chatable\\chatable.csproj": {}
+    "/Users/hoanglam/Desktop/chatable/be-chatable/chatable/chatable.csproj": {}
   },
   "projects": {
-    "C:\\Users\\ADMIN\\Source\\Repos\\be-chatable3\\chatable\\chatable.csproj": {
+    "/Users/hoanglam/Desktop/chatable/be-chatable/chatable/chatable.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Users\\ADMIN\\Source\\Repos\\be-chatable3\\chatable\\chatable.csproj",
+        "projectUniqueName": "/Users/hoanglam/Desktop/chatable/be-chatable/chatable/chatable.csproj",
         "projectName": "chatable",
-        "projectPath": "C:\\Users\\ADMIN\\Source\\Repos\\be-chatable3\\chatable\\chatable.csproj",
-        "packagesPath": "C:\\Users\\ADMIN\\.nuget\\packages\\",
-        "outputPath": "C:\\Users\\ADMIN\\Source\\Repos\\be-chatable3\\chatable\\obj\\",
+        "projectPath": "/Users/hoanglam/Desktop/chatable/be-chatable/chatable/chatable.csproj",
+        "packagesPath": "/Users/hoanglam/.nuget/packages/",
+        "outputPath": "/Users/hoanglam/Desktop/chatable/be-chatable/chatable/obj/",
         "projectStyle": "PackageReference",
         "configFilePaths": [
-          "C:\\Users\\ADMIN\\AppData\\Roaming\\NuGet\\NuGet.Config",
-          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
+          "/Users/hoanglam/.nuget/NuGet/NuGet.Config"
         ],
         "originalTargetFrameworks": [
-          "net7.0"
+          "net8.0"
         ],
         "sources": {
-          "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
           "https://api.nuget.org/v3/index.json": {}
         },
         "frameworks": {
-          "net7.0": {
-            "targetAlias": "net7.0",
+          "net8.0": {
+            "targetAlias": "net8.0",
             "projectReferences": {}
           }
         },
@@ -37,8 +35,8 @@
         }
       },
       "frameworks": {
-        "net7.0": {
-          "targetAlias": "net7.0",
+        "net8.0": {
+          "targetAlias": "net8.0",
           "dependencies": {
             "BCrypt.Net-Next": {
               "target": "Package",
@@ -100,7 +98,7 @@
               "privateAssets": "all"
             }
           },
-          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\7.0.403\\RuntimeIdentifierGraph.json"
+          "runtimeIdentifierGraphPath": "/usr/local/share/dotnet/sdk/8.0.100/PortableRuntimeIdentifierGraph.json"
         }
       }
     }
