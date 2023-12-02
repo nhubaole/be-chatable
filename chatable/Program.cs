@@ -88,5 +88,6 @@ app.UseAuthorization();
 
 app.MapHub<MessagesHub>("messages-hub");
 app.MapHub<CallHub>("call-hub");
+app.MapHub<RoomHub>("room-hub");
 
 app.Run();

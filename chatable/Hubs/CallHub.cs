@@ -3,53 +3,23 @@ using Microsoft.AspNetCore.SignalR;
 
 namespace chatable.Hubs
 {
-    public class RoomCall
-    {
-        public static readonly Dictionary<string, Dictionary<string, PeerInfo>> peersInRoom = new();
-    }
-
     public sealed class CallHub : Hub
     {
-
-        public void JoinRoom(PeerInfo newPeer, string roomId)
+        public override Task OnConnectedAsync()
         {
-
-            // Check if the room exists in the dictionary
-            if (!RoomCall.peersInRoom.ContainsKey(roomId))
-            {
-                RoomCall.peersInRoom[roomId] = new();
-            }
-
-            var room = RoomCall.peersInRoom[roomId];
-            foreach (var peer in room)
-            {
-                if (peer.Key != Context.ConnectionId)
-                {
-                    Clients.Client(peer.Key!).SendAsync("NewPeerJoin", peer);
-                }
-            }
-
-            RoomCall.peersInRoom[roomId].Add(Context.ConnectionId, newPeer);
-
+            // Console.WriteLine(Context.ConnectionId + " đã connect vào Hub");
+            return base.OnConnectedAsync();
+        }
+        public async Task SendCallTo(string receiverId, PeerInfo callerInfo, string typeCall, string roomId)
+        {
+            // Console.WriteLine("SendCallTo " + receiverId);
+            await Clients.Client(receiverId).SendAsync("inviteCall", Context.ConnectionId, callerInfo, typeCall, roomId);
         }
 
-        private PeerInfo GetPeerInfo(string roomId)
+        public async Task SendResponseCallTo(string callerId, string response)
         {
-            var room = RoomCall.peersInRoom[roomId];
-            return room[Context.ConnectionId];
-        }
-
-        public async Task SendCallTo(string receiverId, string typeCall, string roomId)
-        {
-            PeerInfo callerInfo = GetPeerInfo(roomId);
-
-            await Clients.Client(receiverId).SendAsync("inviteCall", callerInfo, typeCall);
-        }
-
-        public void LeaveRoom(string roomId)
-        {
-            var room = RoomCall.peersInRoom[roomId];
-            room.Remove(Context.ConnectionId);
+            // Console.WriteLine("SendResponseCallTo " + callerId);
+            await Clients.Client(callerId).SendAsync("receiverResponse", response);
         }
     }
 }
