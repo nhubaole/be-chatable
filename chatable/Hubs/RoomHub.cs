@@ -39,10 +39,20 @@ namespace chatable.Hubs
 
         public void LeaveRoom(string roomId)
         {
+            // Console.WriteLine(Context.ConnectionId + " has left from Room");
             var room = RoomCall.peersInRoom[roomId];
             room.Remove(Context.ConnectionId);
-            // Console.WriteLine(Context.ConnectionId + " đã rời phòng " + roomId);
 
+            // Console.WriteLine("Room " + roomId + " count = " + room.Count);
+
+            // Console.WriteLine(Context.ConnectionId + " đã rời phòng " + roomId);
+            foreach (var peer in room)
+            {
+                if (peer.Key != Context.ConnectionId)
+                {
+                    Clients.Client(peer.Key!).SendAsync("PeerLeave", Context.ConnectionId);
+                }
+            }
         }
     }
 }

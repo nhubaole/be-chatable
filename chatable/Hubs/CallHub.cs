@@ -21,5 +21,10 @@ namespace chatable.Hubs
             // Console.WriteLine("SendResponseCallTo " + callerId);
             await Clients.Client(callerId).SendAsync("receiverResponse", response);
         }
+
+        public async Task SendMissingCallMessageTo(string receiverId, string callerId) {
+            // Console.Wri teLine("SendMissingCallMessageTo " + receiverId);
+            await Clients.Client(receiverId).SendAsync("missingCall", callerId);
+        }
     }
 }
