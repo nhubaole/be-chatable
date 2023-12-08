@@ -1,15 +1,15 @@
-﻿using chatable.Models;
+﻿using chatable.Contacts.Requests;
+using chatable.Contacts.Responses;
+using chatable.Helper;
+using chatable.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Supabase;
 using Microsoft.Build.Graph;
-using chatable.Contacts.Responses;
-using chatable.Contacts.Requests;
+using Supabase;
 using System;
-using chatable.Helper;
-using System.Security.Cryptography;
 using System.Security.Claims;
+using System.Security.Cryptography;
 
 namespace chatable.Controllers
 {
@@ -24,12 +24,14 @@ namespace chatable.Controllers
             var currentUser = GetCurrentUser();
             try
             {
-                
+
                 var res = await client.From<User>().Get();
                 List<User> records = res.Models;
                 List<string> distinctMemberList = request.MemberList.Distinct().ToList();
-                if(distinctMemberList.Count != request.MemberList.Count) {
-                    return BadRequest(new ApiResponse { 
+                if (distinctMemberList.Count != request.MemberList.Count)
+                {
+                    return BadRequest(new ApiResponse
+                    {
                         Success = false,
                         Message = "Must not duplicate member."
                     });
@@ -37,9 +39,10 @@ namespace chatable.Controllers
                 bool isUserExist = true;
                 foreach (var member in request.MemberList)
                 {
-                    isUserExist = records.Any(x=>x.UserName == member);
+                    isUserExist = records.Any(x => x.UserName == member);
                 }
-                if(request.MemberList.Count <= 1) {
+                if (request.MemberList.Count <= 1)
+                {
                     return BadRequest(new ApiResponse
                     {
                         Success = false,
@@ -87,7 +90,7 @@ namespace chatable.Controllers
                     Data = randomId
                 });
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 return BadRequest(new ApiResponse
                 {
@@ -138,6 +141,92 @@ namespace chatable.Controllers
                 });
             }
         }
+        [HttpGet("{GroupId}/Member")]
+        [Authorize]
+        public async Task<IActionResult> GetMembers(string GroupId, [FromServices] Client client)
+        {
+            //var currentUser = GetCurrentUser();
+            try
+            {
+
+                var response = await client.From<GroupParticipants>().Where(x => x.GroupId == GroupId).Get();
+                var groupParticipants = response.Models;
+                List<UserResponse> listMember = new List<UserResponse>();
+                foreach (var participant in groupParticipants)
+                {
+                    var memberRes = await client.From<User>().Where(x => x.UserName == participant.MemberId).Get();
+                    var member = memberRes.Models.FirstOrDefault();
+                    var memberParticipants = new UserResponse
+                    {
+                        UserName = member.UserName,
+                        FullName = member.FullName,
+                        CreateAt = member.CreatedAt
+                    };
+                    listMember.Add(memberParticipants);
+                }
+
+                return Ok(new ApiResponse
+                {
+                    Success = true,
+                    Message = $"Get members in group {GroupId} successful.",
+                    Data = listMember
+                });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new ApiResponse
+                {
+                    Success = false,
+                    Data = ex.Message
+                });
+            }
+        }
+        [HttpPost("member")]
+        [Authorize]
+        public async Task<ActionResult<GroupParticipants>> AddMemberToGroup(AddMemberRequest request, [FromServices] Client client)
+        {
+            var currentUser = GetCurrentUser();
+            try
+            {
+                var response = await client.From<GroupParticipants>().Where(x => x.GroupId == request.GroupId).Get();
+                var participants = response.Models;
+                foreach (var member in request.MemberList)
+                {
+                    if (participants.Any(x => x.MemberId == member))
+                    {
+                        return BadRequest(new ApiResponse
+                        {
+                            Success = false,
+                            Message = $"Member was exsist in group {participants.FirstOrDefault().GroupId}"
+                        });
+                    }
+                }
+
+                foreach (var member in request.MemberList)
+                {
+                    var members = new GroupParticipants
+                    {
+                        GroupId = request.GroupId,
+                        MemberId = member
+                    };
+                    var res = await client.From<GroupParticipants>().Insert(members);
+                }
+                return Ok(new ApiResponse
+                {
+                    Success = true,
+                    Message = $"Add member group {participants.FirstOrDefault().GroupId} successful."
+                });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new ApiResponse
+                {
+                    Success = false,
+                    Data = ex.Message
+                });
+            }
+        }
+
         private User GetCurrentUser()
         {
             var identity = HttpContext.User.Identity as ClaimsIdentity;
