@@ -24,9 +24,20 @@ namespace chatable.Controllers
             var currentUser = GetCurrentUser();
             try
             {
-
                 var res = await client.From<User>().Get();
                 List<User> records = res.Models;
+                foreach (var member in request.MemberList)
+                {
+                    if (!records.Any(x => x.UserName == member))
+                    {
+                        return NotFound(new ApiResponse
+                        {
+                            Success = false,
+                            Message = "Member is not exist."
+                        });
+                    }
+                }
+
                 List<string> distinctMemberList = request.MemberList.Distinct().ToList();
                 if (distinctMemberList.Count != request.MemberList.Count)
                 {
@@ -36,11 +47,7 @@ namespace chatable.Controllers
                         Message = "Must not duplicate member."
                     });
                 }
-                bool isUserExist = true;
-                foreach (var member in request.MemberList)
-                {
-                    isUserExist = records.Any(x => x.UserName == member);
-                }
+
                 if (request.MemberList.Count <= 1)
                 {
                     return BadRequest(new ApiResponse
@@ -49,14 +56,7 @@ namespace chatable.Controllers
                         Message = "Member in group must be greater than 2."
                     });
                 }
-                if (!isUserExist)
-                {
-                    return NotFound(new ApiResponse
-                    {
-                        Success = false,
-                        Message = "Member is not exist."
-                    });
-                }
+                
                 string randomId = Utils.RandomString(8);
                 var Group = new Group
                 {
@@ -188,6 +188,20 @@ namespace chatable.Controllers
             var currentUser = GetCurrentUser();
             try
             {
+                var users = await client.From<User>().Get();
+                List<User> records = users.Models;
+                foreach (var member in request.MemberList)
+                {
+                    if (!records.Any(x => x.UserName == member))
+                    {
+                        return NotFound(new ApiResponse
+                        {
+                            Success = false,
+                            Message = "Member is not exist."
+                        });
+                    }
+                }
+
                 var response = await client.From<GroupParticipants>().Where(x => x.GroupId == request.GroupId).Get();
                 var participants = response.Models;
                 foreach (var member in request.MemberList)
