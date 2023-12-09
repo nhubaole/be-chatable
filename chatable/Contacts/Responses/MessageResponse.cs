@@ -10,5 +10,6 @@ namespace chatable.Contacts.Responses
         public string MessageType { get; set; }
         [Required]
         public string Content { get; set; }
+        public DateTime SentAt { get; set; }
     }
 }

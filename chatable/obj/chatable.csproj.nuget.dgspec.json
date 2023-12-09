@@ -1,25 +1,27 @@
 {
   "format": 1,
   "restore": {
-    "/Users/hoanglam/Desktop/chatable/be-chatable/chatable/chatable.csproj": {}
+    "D:\\Data\\UIT\\chatable\\chatable.csproj": {}
   },
   "projects": {
-    "/Users/hoanglam/Desktop/chatable/be-chatable/chatable/chatable.csproj": {
+    "D:\\Data\\UIT\\chatable\\chatable.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "/Users/hoanglam/Desktop/chatable/be-chatable/chatable/chatable.csproj",
+        "projectUniqueName": "D:\\Data\\UIT\\chatable\\chatable.csproj",
         "projectName": "chatable",
-        "projectPath": "/Users/hoanglam/Desktop/chatable/be-chatable/chatable/chatable.csproj",
-        "packagesPath": "/Users/hoanglam/.nuget/packages/",
-        "outputPath": "/Users/hoanglam/Desktop/chatable/be-chatable/chatable/obj/",
+        "projectPath": "D:\\Data\\UIT\\chatable\\chatable.csproj",
+        "packagesPath": "C:\\Users\\Ms.Trang\\.nuget\\packages\\",
+        "outputPath": "D:\\Data\\UIT\\chatable\\obj\\",
         "projectStyle": "PackageReference",
         "configFilePaths": [
-          "/Users/hoanglam/.nuget/NuGet/NuGet.Config"
+          "C:\\Users\\Ms.Trang\\AppData\\Roaming\\NuGet\\NuGet.Config",
+          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
         ],
         "originalTargetFrameworks": [
           "net7.0"
         ],
         "sources": {
+          "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
           "https://api.nuget.org/v3/index.json": {}
         },
         "frameworks": {
@@ -90,20 +92,6 @@
           ],
           "assetTargetFallback": true,
           "warn": true,
-          "downloadDependencies": [
-            {
-              "name": "Microsoft.AspNetCore.App.Ref",
-              "version": "[7.0.14, 7.0.14]"
-            },
-            {
-              "name": "Microsoft.NETCore.App.Host.osx-arm64",
-              "version": "[7.0.14, 7.0.14]"
-            },
-            {
-              "name": "Microsoft.NETCore.App.Ref",
-              "version": "[7.0.14, 7.0.14]"
-            }
-          ],
           "frameworkReferences": {
             "Microsoft.AspNetCore.App": {
               "privateAssets": "none"
@@ -112,7 +100,7 @@
               "privateAssets": "all"
             }
           },
-          "runtimeIdentifierGraphPath": "/usr/local/share/dotnet/sdk/8.0.100/RuntimeIdentifierGraph.json"
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\7.0.402\\RuntimeIdentifierGraph.json"
         }
       }
     }

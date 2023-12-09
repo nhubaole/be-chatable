@@ -6,10 +6,12 @@ namespace chatable.Models
     public class Group : BaseModel
     {
         [PrimaryKey("group_id", true)]
-        public int GroupId { get; set; }
+        public string GroupId { get; set; }
         [Column("group_name")]
         public string GroupName { get; set; }
-        [Column("admin_id")]
+        [Column("conversation_id")]
+        public string ConversationId { get; set; }
+        [Column("owner_id")]
         public string AdminId { get; set; }
         [Column("created_at")]
         public DateTime CreatedAt { get; set; }
