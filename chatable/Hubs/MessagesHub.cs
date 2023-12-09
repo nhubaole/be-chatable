@@ -34,6 +34,7 @@ namespace chatable.Hubs
                 SenderId = senderId,
                 MessageType = messageType,
                 Content = content,
+                SentAt = DateTime.UtcNow,
             };
 
             await Clients
@@ -44,10 +45,10 @@ namespace chatable.Hubs
 
             Message message = new Message()
             {
-                SenderId = senderId.ToString(),
-                MessageType = messageType,
-                Content = content,
-                SentAt = DateTime.UtcNow,
+                SenderId = messageRes.SenderId,
+                MessageType = messageRes.MessageType,
+                Content = messageRes.Content,
+                SentAt = messageRes.SentAt,
                 ConversationId = conversationId
             };
 
@@ -91,7 +92,7 @@ namespace chatable.Hubs
             catch (Exception ex)
             {
                 Console.WriteLine($"Lỗi trong hàm getConversationId: {ex.Message}");
-                throw; 
+                throw;
             }
         }
 
