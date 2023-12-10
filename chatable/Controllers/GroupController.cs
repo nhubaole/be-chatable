@@ -56,7 +56,7 @@ namespace chatable.Controllers
                         Message = "Member in group must be greater than 2."
                     });
                 }
-                
+
                 string randomId = Utils.RandomString(8);
                 var Group = new Group
                 {
@@ -82,7 +82,7 @@ namespace chatable.Controllers
                 };
                 var responseOwnerPart = await client.From<GroupParticipants>().Insert(ownerParticipant);
 
-
+                StoreGroupConnection(client, randomId);
                 return Ok(new ApiResponse
                 {
                     Success = true,
@@ -106,7 +106,7 @@ namespace chatable.Controllers
             var currentUser = GetCurrentUser();
             try
             {
-                var response = await client.From<Group>().Where(x => x.AdminId == currentUser.UserName).Get();
+                var response = await client.From<GroupParticipants>().Where(x => x.MemberId == currentUser.UserName).Get();
                 var groups = response.Models;
                 if (groups == null)
                 {
@@ -115,14 +115,8 @@ namespace chatable.Controllers
                 List<Group> groupsList = new List<Group>();
                 foreach (var group in groups)
                 {
-                    var groupResponse = new Group
-                    {
-                        GroupId = group.GroupId,
-                        GroupName = group.GroupName,
-                        ConversationId = group.ConversationId,
-                        AdminId = group.AdminId,
-                        CreatedAt = group.CreatedAt
-                    };
+                    var res = await client.From<Group>().Where(x => x.GroupId == group.GroupId).Get();
+                    var groupResponse = res.Models.FirstOrDefault();
                     groupsList.Add(groupResponse);
                 }
                 return Ok(new ApiResponse
@@ -256,6 +250,16 @@ namespace chatable.Controllers
                 };
             }
             return null;
+        }
+
+        private async void StoreGroupConnection(Client client, string groupId)
+        {
+            var group = new GroupConnection()
+            {
+                ConnectionId = Guid.NewGuid().ToString(),
+                GroupId = groupId,
+            };
+            var res = await client.From<GroupConnection>().Insert(group);
         }
 
     }
