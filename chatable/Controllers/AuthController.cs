@@ -27,7 +27,7 @@ namespace chatable.Controllers
 
         }
 
-        [HttpPost("register")]
+        [HttpPost("Register")]
         public async Task<IActionResult> Register(UserRegisterRequest userRequest, [FromServices] Client client)
         {
             try
@@ -73,7 +73,7 @@ namespace chatable.Controllers
             }
         }
 
-        [HttpPost("login")]
+        [HttpPost("Login")]
         public async Task<IActionResult> Login(UserLoginRequest userRequest, [FromServices] Client client)
         {
             try
@@ -121,7 +121,7 @@ namespace chatable.Controllers
 
         }
 
-        [HttpPost("logout")]
+        [HttpPost("Logout")]
         [Authorize]
         public async Task<IActionResult> Logout()
         {
