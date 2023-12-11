@@ -82,41 +82,41 @@ namespace chatable.Controllers
             }
         }
 
-        [HttpGet("Accept/{sender_id}")]
+        [HttpGet("Accept/{SenderID}")]
         [Authorize]
-        public async Task<ActionResult> AcceptRequest(string sender_id, [FromServices] Client client)
+        public async Task<ActionResult> AcceptRequest(string SenderID, [FromServices] Client client)
         {
             try
             {
                 var currentUser = GetCurrentUser();
-                var request = await client.From<Request>().Where(x => x.SenderId == sender_id &&
+                var request = await client.From<Request>().Where(x => x.SenderId == SenderID &&
                                                                     x.ReceiverId == currentUser.UserName)
                                                                    .Set(x => x.Status, "Accepted").Update();
                 var res = request.Models.FirstOrDefault();
 
                 if (res != null)
                 {
-                    if (sender_id == currentUser.UserName)
+                    if (SenderID == currentUser.UserName)
                     {
                         throw new FormatException();
                     }
                     //throw new KeyNotFoundException();
                     var friend1 = new Friend
                     {
-                        UserId = sender_id,
+                        UserId = SenderID,
                         FriendId = currentUser.UserName
                     };
                     var friend2 = new Friend
                     {
                         UserId = currentUser.UserName,
-                        FriendId = sender_id
+                        FriendId = SenderID
                     };
                     var updateFriend1 = await client.From<Friend>().Insert(friend1);
                     var updateFriend2 = await client.From<Friend>().Insert(friend2);
                     return Ok(new ApiResponse
                     {
                         Success = true,
-                        Message = $"You have become friend with {sender_id}"
+                        Message = $"You have become friend with {SenderID}"
                     });
                 }
                 throw new Exception();
@@ -133,14 +133,14 @@ namespace chatable.Controllers
 
         }
 
-        [HttpGet("Decline/{sender_id}")]
+        [HttpGet("Decline/{SenderID}")]
         [Authorize]
-        public async Task<ActionResult> DeclineRequest(string sender_id, [FromServices] Client client)
+        public async Task<ActionResult> DeclineRequest(string SenderID, [FromServices] Client client)
         {
             try
             {
                 var currentUser = GetCurrentUser();
-                var request = await client.From<Request>().Where(x => x.SenderId == sender_id &&
+                var request = await client.From<Request>().Where(x => x.SenderId == SenderID &&
                                                                     x.ReceiverId == currentUser.UserName)
                                                                    .Set(x => x.Status, "Decline").Update();
                 var res = request.Models.FirstOrDefault();
@@ -149,7 +149,7 @@ namespace chatable.Controllers
                     return Ok(new ApiResponse
                     {
                         Success = true,
-                        Message = $"You have declined {sender_id}'s friend request."
+                        Message = $"You have declined {SenderID}'s friend request."
                     });
                 }
                 throw new Exception();
@@ -165,25 +165,25 @@ namespace chatable.Controllers
                 });
             }
         }
-        [HttpGet("Remove/{receiver_id}")]
+        [HttpGet("Remove/{ReceiverID}")]
         [Authorize]
-        public async Task<ActionResult> RemoveRequest(string receiver_id, [FromServices] Client client)
+        public async Task<ActionResult> RemoveRequest(string ReceiverID, [FromServices] Client client)
         {
             try
             {
 
                 var currentUser = GetCurrentUser();
                 var request = await client.From<Request>().Where(x => x.SenderId == currentUser.UserName &&
-                                                x.ReceiverId == receiver_id).Get();
+                                                x.ReceiverId == ReceiverID).Get();
                 if (request.Models.Count != 0)
                 {
 
                     await client.From<Request>().Where(x => x.SenderId == currentUser.UserName &&
-                                                x.ReceiverId == receiver_id).Delete();
+                                                x.ReceiverId == ReceiverID).Delete();
                     return Ok(new ApiResponse
                     {
                         Success = true,
-                        Message = $"Removed the request to {receiver_id}"
+                        Message = $"Removed the request to {ReceiverID}"
                     });
                 }
                 throw new Exception();

@@ -175,7 +175,7 @@ namespace chatable.Controllers
                 });
             }
         }
-        [HttpPost("member")]
+        [HttpPost("Member")]
         [Authorize]
         public async Task<ActionResult<GroupParticipants>> AddMemberToGroup(AddMemberRequest request, [FromServices] Client client)
         {
@@ -231,6 +231,103 @@ namespace chatable.Controllers
                 {
                     Success = false,
                     Data = ex.Message
+                });
+            }
+        }
+
+        [HttpDelete("{GroupID}")]
+        [Authorize]
+        public async Task<ActionResult<Group>> DeteleGroup(string GroupID, [FromServices] Client client)
+        {
+            var currentUser = GetCurrentUser();
+            try
+            {
+                var response = await client.From<Group>().Where(x => x.GroupId == GroupID).Get();
+                var group = response.Models.FirstOrDefault();
+                if (group is null)
+                {
+                    return NotFound(new ApiResponse
+                    {
+                        Success = false,
+                        Message = $"Group {GroupID} was not exist."
+                    });
+                }
+                if (group.AdminId != currentUser.UserName)
+                {
+                    return StatusCode(403, new ApiResponse
+                    {
+                        Success = false,
+                        Message = "Access denied."
+                    });
+                }
+
+                await client.From<Group>().Where(x => x.GroupId == GroupID && x.AdminId == currentUser.UserName).Delete();
+                return Ok(new ApiResponse
+                {
+                    Success = true,
+                    Message = $"Group {group.GroupName} was deleted."
+                });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new ApiResponse
+                {
+                    Success = false,
+                    Message = ex.Message
+                });
+            }
+        }
+
+        [HttpDelete("{GroupId}/Member")]
+        [Authorize]
+        public async Task<ActionResult<GroupParticipants>> RemoveMemberFromGroup(string GroupId, RemoveMemberGroup memberId, [FromServices] Client client)
+        {
+            var currentUser = GetCurrentUser();
+            try
+            {
+                var response = await client.From<Group>().Where(x => x.GroupId == GroupId).Get();
+                var group = response.Models.FirstOrDefault();
+                if (group is null)
+                {
+                    return NotFound(new ApiResponse
+                    {
+                        Success = false,
+                        Message = $"Group {GroupId} was not exist."
+                    });
+                }
+                if (group.AdminId != currentUser.UserName)
+                {
+                    return StatusCode(403, new ApiResponse
+                    {
+                        Success = false,
+                        Message = "Access denied."
+                    });
+                }
+                var res = await client.From<GroupParticipants>()
+                    .Where(x => x.GroupId == GroupId).Select(x => new object[] { x.MemberId }).Get();
+                var MemberId = res.Models;
+                if (MemberId.ToString().Contains(memberId.MemberId))
+                {
+                    return BadRequest(new ApiResponse
+                    {
+                        Success = false,
+                        Message = $"Member was not exsist in group {GroupId}"
+                    });
+                }
+                await client.From<GroupParticipants>().Where(x => x.GroupId == GroupId && x.MemberId == memberId.MemberId).Delete();
+
+                return Ok(new ApiResponse
+                {
+                    Success = true,
+                    Message = $"Member {memberId.MemberId} was removed from group {GroupId}"
+                });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new ApiResponse
+                {
+                    Success = false,
+                    Message = ex.Message
                 });
             }
         }
