@@ -126,7 +126,7 @@ namespace chatable.Controllers
             }
         }
 
-        [HttpGet("{UserName}/messages")]
+        [HttpGet("{UserName}/Messages")]
         [Authorize]
         public async Task<ActionResult> GetMessagesFromAConversation(string UserName, [FromServices] Client client)
         {
