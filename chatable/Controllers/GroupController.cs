@@ -314,12 +314,59 @@ namespace chatable.Controllers
                         Message = $"Member was not exsist in group {GroupId}"
                     });
                 }
-                await client.From<GroupParticipants>().Where(x => x.GroupId == GroupId && x.MemberId == memberId.MemberId).Delete();
+                await client.From<GroupParticipants>().Where(x => x.GroupId == GroupId
+                                                                        && x.MemberId == memberId.MemberId).Delete();
 
                 return Ok(new ApiResponse
                 {
                     Success = true,
                     Message = $"Member {memberId.MemberId} was removed from group {GroupId}"
+                });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new ApiResponse
+                {
+                    Success = false,
+                    Message = ex.Message
+                });
+            }
+        }
+        [HttpDelete("{GroupId}/Leave")]
+        [Authorize]
+        public async Task<ActionResult<GroupParticipants>> LeaveGroup(string GroupId, [FromServices] Client client)
+        {
+            try
+            {
+                var currentUser = GetCurrentUser();
+                var response = await client.From<GroupParticipants>().Where(x => x.GroupId == GroupId).Get();
+                var groupParticipants = response.Models;
+                if (groupParticipants == null)
+                {
+                    return NotFound(new ApiResponse
+                    {
+                        Success = false,
+                        Message = $"Group {GroupId} does not exist."
+                    });
+                }
+                await client.From<GroupParticipants>().Where(x => x.GroupId == GroupId
+                                                                && x.MemberId == currentUser.UserName).Delete();
+                var resGroup = await client.From<Group>().Where(x => x.GroupId == GroupId).Get();
+                var group = resGroup.Models.FirstOrDefault();
+                var res = await client.From<GroupParticipants>().Where(x => x.GroupId == GroupId).Get();
+                var updatedParticipant = res.Models.FirstOrDefault();
+                if (group.AdminId == currentUser.UserName)
+                {
+                    var updatedAdmin = await client.From<Group>().Where(x => x.GroupId == GroupId)
+                        .Set(x => x.AdminId, updatedParticipant.MemberId).Update();
+                }
+
+
+
+                return Ok(new ApiResponse
+                {
+                    Success = true,
+                    Message = $"You have left the group {GroupId}"
                 });
             }
             catch (Exception ex)
