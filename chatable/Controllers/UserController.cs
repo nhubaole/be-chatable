@@ -1,8 +1,10 @@
-﻿using chatable.Contacts.Responses;
+﻿using chatable.Contacts.Requests;
+using chatable.Contacts.Responses;
 using chatable.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Supabase;
+using System.Reflection.Metadata.Ecma335;
 using System.Security.Claims;
 
 namespace chatable.Controllers
@@ -104,6 +106,74 @@ namespace chatable.Controllers
                 });
             }
 
+        }
+        [HttpGet("CurrentUser")]
+        [Authorize]
+        public async Task<ActionResult<User>> GetCurrentUserProfile([FromServices] Client client)
+        {
+            try
+            {
+                var currentUser = GetCurrentUser();
+                var response = await client.From<User>().Where(x => x.UserName == currentUser.UserName).Get();
+                var currUser = response.Models.FirstOrDefault();
+                return Ok(new ApiResponse
+                {
+                    Success = true,
+                    Message = "Successful.",
+                    Data = currUser
+                });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new ApiResponse
+                {
+                    Success = false,
+                    Message = ex.Message
+                });
+            }
+        }
+
+        [HttpPut]
+        [Authorize]
+        public async Task<IActionResult> EditUser(EditUserRequest request, [FromServices] Client client)
+        {
+            try
+            {
+                var currentUser = GetCurrentUser();
+                var response = await client.From<User>().Where(x => x.UserName == currentUser.UserName).Get();
+                var user = response.Models.FirstOrDefault();
+                if (user is null)
+                {
+                    throw new Exception();
+                }
+                if (user.UserName != currentUser.UserName)
+                {
+                    return StatusCode(403, new ApiResponse
+                    {
+                        Success = false,
+                        Message = "Access denied."
+                    });
+                }
+                var update = await client.From<User>().Where(x => x.UserName == currentUser.UserName)
+                                                            .Set(x => x.FullName, request.FullName)
+                                                            .Set(x => x.DOB, request.DOB)
+                                                            .Set(x => x.Gender, request.Gender).Update();
+                var updatedUser = update.Models.FirstOrDefault();
+                return Ok(new ApiResponse
+                {
+                    Success = true,
+                    Message = "Edit successful.",
+                    Data = updatedUser
+                });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new ApiResponse
+                {
+                    Success = false,
+                    Message = ex.Message
+                });
+            }
         }
         private User GetCurrentUser()
         {
