@@ -15,7 +15,6 @@ namespace chatable.Controllers
     {
         // Get user by id
         [HttpGet("{UserName}")]
-        [Authorize]
         public async Task<ActionResult<User>> GetUserById(string UserName, [FromServices] Client client)
         {
             var currentUser = GetCurrentUser();
@@ -27,10 +26,6 @@ namespace chatable.Controllers
                 if (user is null)
                 {
                     throw new Exception();
-                }
-                if (currentUser.UserName != UserName)
-                {
-                    throw new FormatException();
                 }
 
                 var userResponse = new UserResponse
@@ -45,14 +40,6 @@ namespace chatable.Controllers
                     Success = true,
                     Message = "Successfuly",
                     Data = userResponse
-                });
-            }
-            catch (FormatException)
-            {
-                return StatusCode(403, new ApiResponse
-                {
-                    Success = false,
-                    Message = "Access denied."
                 });
             }
             catch (Exception)

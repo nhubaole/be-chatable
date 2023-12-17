@@ -13,6 +13,8 @@ namespace chatable.Models
         public string ConversationId { get; set; }
         [Column("owner_id")]
         public string AdminId { get; set; }
+        [Column("avatar")]
+        public string Avatar { get; set; }
         [Column("created_at")]
         public DateTime CreatedAt { get; set; }
     }
