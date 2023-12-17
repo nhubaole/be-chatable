@@ -145,11 +145,11 @@ namespace chatable.Controllers
             }
         }
 
-        [HttpPost("RefreshToken")]
-        public async Task<IActionResult> RefreshToken(Token token)
-        {
+        //[HttpPost("RefreshToken")]
+        //public async Task<IActionResult> RefreshToken(Token token)
+        //{
 
-        }
+        //}
 
     }
 
