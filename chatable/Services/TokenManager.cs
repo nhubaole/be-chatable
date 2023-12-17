@@ -1,8 +1,11 @@
-﻿using chatable.Models;
+﻿using chatable.Contacts.Responses;
+using chatable.Models;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
+using System.Security.Cryptography;
 using System.Text;
 
 namespace chatable.Services
@@ -15,7 +18,7 @@ namespace chatable.Services
         //{
         //    _configuration = configuration;
 
-        public static string GenerateToken(User user, IConfiguration configuration)
+        public static Token GenerateToken(User user, IConfiguration configuration)
         {
             var jwtTokenHandler = new JwtSecurityTokenHandler();
             var secretKey = configuration.GetValue<string>("AppSettings:SecretKey");
@@ -26,6 +29,8 @@ namespace chatable.Services
                 Subject = new ClaimsIdentity(new[]
                 {
                     new Claim(ClaimTypes.NameIdentifier, user.UserName),
+                    new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
+                    new Claim(JwtRegisteredClaimNames.Email, user.Email),
                     new Claim(ClaimTypes.Name, user.FullName)
                 }),
 
@@ -34,8 +39,34 @@ namespace chatable.Services
                     new SymmetricSecurityKey(secretKeyBytes), SecurityAlgorithms.HmacSha512Signature)
             };
             var token = jwtTokenHandler.CreateToken(tokenDescription);
-            return jwtTokenHandler.WriteToken(token);
-        }
+            var accessToken = jwtTokenHandler.WriteToken(token);
+            var refreshToken = GenerateRefreshToken();
 
+            var refreshTokenEntity = new RefreshToken
+            {
+                Id = Guid.NewGuid(),
+                JwtId = token.Id,
+                Token = refreshToken,
+                IsUsed = false,
+                IsRevoked = false,
+                CreatedAt = DateTime.UtcNow,
+                ExpiredAt = DateTime.UtcNow.AddHours(1)
+            };
+            return new Token
+            {
+                AccessToken = accessToken,
+                RefreshToken = refreshToken
+            };
+        }
+        private static string GenerateRefreshToken()
+        {
+            var random = new byte[64];
+            using (var rng = RandomNumberGenerator.Create())
+            {
+                rng.GetBytes(random);
+                return Convert.ToBase64String(random);
+            }
+
+        }
     }
 }
