@@ -12,6 +12,8 @@ namespace chatable.Models
         public string? UserName { get; set; }
         [Column("full_name")]
         public string FullName { get; set; }
+        [Column("email")]
+        public string Email { get; set; }
         [Column("avatar")]
         public string Avatar { get; set; }
         [Column("dob")]

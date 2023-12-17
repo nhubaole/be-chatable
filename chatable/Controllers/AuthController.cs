@@ -92,7 +92,7 @@ namespace chatable.Controllers
                     throw new UnauthorizedAccessException();
                 }
                 var token = TokenManager.GenerateToken(user, _configuration);
-                Response.Cookies.Append("jwt", token, new CookieOptions //Save the JWT in the browser cookies, Key is "jwt"
+                Response.Cookies.Append("jwt", token.AccessToken, new CookieOptions //Save the JWT in the browser cookies, Key is "jwt"
                 {
                     HttpOnly = true,
                     SameSite = SameSiteMode.None,
@@ -143,10 +143,13 @@ namespace chatable.Controllers
                     Message = ex.Message
                 });
             }
-
-
         }
 
+        [HttpPost("RefreshToken")]
+        public async Task<IActionResult> RefreshToken(Token token)
+        {
+
+        }
 
     }
 
