@@ -19,7 +19,7 @@ namespace chatable.Services
         //{
         //    _configuration = configuration;
 
-        public static async Task<Token>  GenerateToken(User user, IConfiguration configuration, Client client)
+        public static async Task<Token> GenerateToken(User user, IConfiguration configuration, Client client)
         {
             var jwtTokenHandler = new JwtSecurityTokenHandler();
             var secretKey = configuration.GetValue<string>("AppSettings:SecretKey");
@@ -34,7 +34,7 @@ namespace chatable.Services
                     new Claim(ClaimTypes.Name, user.FullName)
                 }),
 
-                Expires = DateTime.UtcNow.AddSeconds(20),
+                Expires = DateTime.UtcNow.AddMinutes(45),
                 SigningCredentials = new SigningCredentials(
                     new SymmetricSecurityKey(secretKeyBytes), SecurityAlgorithms.HmacSha512Signature)
             };
@@ -53,7 +53,7 @@ namespace chatable.Services
                 CreatedAt = DateTime.UtcNow,
                 ExpiredAt = DateTime.UtcNow.AddHours(1)
             };
-            var res =  await client.From<RefreshToken>().Insert(refreshTokenEntity);
+            var res = await client.From<RefreshToken>().Insert(refreshTokenEntity);
             return new Token
             {
                 AccessToken = accessToken,

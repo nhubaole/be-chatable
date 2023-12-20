@@ -12,6 +12,8 @@ namespace chatable.Controllers
     [ApiController]
     public class UserController : Controller
     {
+        private int dd;
+
         // Get user by id
         [HttpGet("{UserName}")]
         public async Task<ActionResult<User>> GetUserById(string UserName, [FromServices] Client client)
@@ -35,13 +37,12 @@ namespace chatable.Controllers
                 //};
                 var userResponse = new ProfileUser
                 {
-                    UserName = currentUser.UserName,
-                    FullName = currentUser.FullName,
-                    Email = currentUser.Email,
-                    DOB = currentUser.DOB,
-                    Gender = currentUser.Gender,
-                    AvatarUrl = client.Storage.From("users-avatar")
-                    .GetPublicUrl($"user-{UserName}.png")
+                    UserName = user.UserName,
+                    FullName = user.FullName,
+                    Email = user.Email,
+                    DOB = user.DOB,
+                    Gender = user.Gender,
+                    AvatarUrl = user.Avatar
                 };
 
                 return Ok(new ApiResponse
@@ -74,14 +75,17 @@ namespace chatable.Controllers
                 {
                     throw new Exception();
                 }
-                List<UserResponse> result = new List<UserResponse>();
+                List<ProfileUser> result = new List<ProfileUser>();
                 foreach (var user in users)
                 {
-                    var usersResponse = new UserResponse
+                    var usersResponse = new ProfileUser
                     {
                         UserName = user.UserName,
                         FullName = user.FullName,
-                        CreateAt = user.CreatedAt
+                        Email = user.Email,
+                        DOB = user.DOB,
+                        Gender = user.Gender,
+                        AvatarUrl = user.Avatar,
                     };
 
                     result.Add(usersResponse);
@@ -120,8 +124,7 @@ namespace chatable.Controllers
                     Email = currentUser.Email,
                     DOB = currentUser.DOB,
                     Gender = currentUser.Gender,
-                    AvatarUrl = client.Storage.From("users-avatar")
-            .GetPublicUrl($"user-{currentUser.UserName}.png")
+                    AvatarUrl = currentUser.Avatar,
                 };
                 return Ok(new ApiResponse
                 {
@@ -197,17 +200,30 @@ namespace chatable.Controllers
 
                 var lastIndexOfDot = file.FileName.LastIndexOf('.');
                 string extension = file.FileName.Substring(lastIndexOfDot + 1);
-
+                string updatedTime = DateTime.Now.ToString("yyyy-dd-MM-HH-mm-ss");
+                string fileName = $"user-{currentUser.UserName}?t={updatedTime}.{extension}";
                 await client.Storage.From("users-avatar").Upload(
                     memoryStream.ToArray(),
-                    $"user-{currentUser.UserName}.{extension}",
+                   fileName,
                     new Supabase.Storage.FileOptions
                     {
                         CacheControl = "3600",
-                        Upsert = false
+                        Upsert = true
 
                     });
-                return Ok();
+                var avatarUrl = client.Storage.From("users-avatar")
+                                            .GetPublicUrl(fileName);
+                var updateAvatar = await client
+                                  .From<User>()
+                                  .Where(x => x.UserName == currentUser.UserName)
+                                  .Set(x => x.Avatar, avatarUrl)
+                                  .Update();
+                return Ok(new ApiResponse
+                {
+                    Success = true,
+                    Message = "Upload image successful.",
+                    Data = avatarUrl
+                });
             }
             catch (Exception ex)
             {

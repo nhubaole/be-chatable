@@ -135,6 +135,8 @@ namespace chatable.Controllers
                 });
             }
         }
+        // [HttpGet("{GroupId}")]
+
         [HttpGet("{GroupId}/Member")]
         [Authorize]
         public async Task<IActionResult> GetMembers(string GroupId, [FromServices] Client client)
@@ -367,6 +369,74 @@ namespace chatable.Controllers
                 {
                     Success = true,
                     Message = $"You have left the group {GroupId}"
+                });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new ApiResponse
+                {
+                    Success = false,
+                    Message = ex.Message
+                });
+            }
+        }
+
+        [HttpPost("UploadAvatar/{GroupId}")]
+        [Authorize]
+        public async Task<IActionResult> UploadAvatar([FromForm] IFormFile file, string GroupId, [FromServices] Client client)
+        {
+            var currentUser = GetCurrentUser();
+            try
+            {
+                var response = await client.From<GroupParticipants>()
+                    .Where(x => x.GroupId == GroupId).Get();
+                var group = response.Models;
+                if (group.FirstOrDefault() is null)
+                {
+                    return BadRequest(new ApiResponse
+                    {
+                        Success = false,
+                        Message = $"Group {GroupId} does not exist."
+                    });
+                }
+                if (!group.Any(x => x.MemberId == currentUser.UserName))
+                {
+                    return StatusCode(403, new ApiResponse
+                    {
+                        Success = false,
+                        Message = $"You are not in group {GroupId}"
+                    });
+                }
+                using var memoryStream = new MemoryStream();
+
+                await file.CopyToAsync(memoryStream);
+
+                var lastIndexOfDot = file.FileName.LastIndexOf('.');
+                string extension = file.FileName.Substring(lastIndexOfDot + 1);
+                string updatedTime = DateTime.Now.ToString("yyyy-dd-MM-HH-mm-ss");
+                string fileName = $"group-{GroupId}?t={updatedTime}.{extension}";
+
+                await client.Storage.From("groups-avatar").Upload(
+                    memoryStream.ToArray(),
+                    fileName,
+                    new Supabase.Storage.FileOptions
+                    {
+                        CacheControl = "3600",
+                        Upsert = true
+
+                    });
+                var avatarUrl = client.Storage.From("groups-avatar")
+                                            .GetPublicUrl(fileName);
+                var updateAvatar = await client
+                                  .From<Group>()
+                                  .Where(x => x.GroupId == GroupId)
+                                  .Set(x => x.Avatar, avatarUrl)
+                                  .Update();
+                return Ok(new ApiResponse
+                {
+                    Success = true,
+                    Message = "Upload image successful.",
+                    Data = avatarUrl
                 });
             }
             catch (Exception ex)
