@@ -4,7 +4,6 @@ using chatable.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Supabase;
-using System.Reflection.Metadata.Ecma335;
 using System.Security.Claims;
 
 namespace chatable.Controllers
@@ -28,11 +27,21 @@ namespace chatable.Controllers
                     throw new Exception();
                 }
 
-                var userResponse = new UserResponse
+                //var  = new UserResponse
+                //{
+                //    UserName = user.UserName,
+                //    FullName = user.FullName,
+                //    CreateAt = user.CreatedAt
+                //};
+                var userResponse = new ProfileUser
                 {
-                    UserName = user.UserName,
-                    FullName = user.FullName,
-                    CreateAt = user.CreatedAt
+                    UserName = currentUser.UserName,
+                    FullName = currentUser.FullName,
+                    Email = currentUser.Email,
+                    DOB = currentUser.DOB,
+                    Gender = currentUser.Gender,
+                    AvatarUrl = client.Storage.From("users-avatar")
+                    .GetPublicUrl($"user-{UserName}.png")
                 };
 
                 return Ok(new ApiResponse
@@ -74,6 +83,7 @@ namespace chatable.Controllers
                         FullName = user.FullName,
                         CreateAt = user.CreatedAt
                     };
+
                     result.Add(usersResponse);
                 }
 
@@ -103,11 +113,21 @@ namespace chatable.Controllers
                 var currentUser = GetCurrentUser();
                 var response = await client.From<User>().Where(x => x.UserName == currentUser.UserName).Get();
                 var currUser = response.Models.FirstOrDefault();
+                var user = new ProfileUser
+                {
+                    UserName = currentUser.UserName,
+                    FullName = currentUser.FullName,
+                    Email = currentUser.Email,
+                    DOB = currentUser.DOB,
+                    Gender = currentUser.Gender,
+                    AvatarUrl = client.Storage.From("users-avatar")
+            .GetPublicUrl($"user-{currentUser.UserName}.png")
+                };
                 return Ok(new ApiResponse
                 {
                     Success = true,
                     Message = "Successful.",
-                    Data = currUser
+                    Data = user
                 });
             }
             catch (Exception ex)
@@ -152,6 +172,42 @@ namespace chatable.Controllers
                     Message = "Edit successful.",
                     Data = updatedUser
                 });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new ApiResponse
+                {
+                    Success = false,
+                    Message = ex.Message
+                });
+            }
+        }
+
+        [HttpPost("UploadAvatar")]
+        [Authorize]
+        public async Task<IActionResult> UploadAvatar([FromForm] IFormFile file, [FromServices] Client client)
+        {
+            var currentUser = GetCurrentUser();
+            try
+            {
+
+                using var memoryStream = new MemoryStream();
+
+                await file.CopyToAsync(memoryStream);
+
+                var lastIndexOfDot = file.FileName.LastIndexOf('.');
+                string extension = file.FileName.Substring(lastIndexOfDot + 1);
+
+                await client.Storage.From("users-avatar").Upload(
+                    memoryStream.ToArray(),
+                    $"user-{currentUser.UserName}.{extension}",
+                    new Supabase.Storage.FileOptions
+                    {
+                        CacheControl = "3600",
+                        Upsert = false
+
+                    });
+                return Ok();
             }
             catch (Exception ex)
             {
