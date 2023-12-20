@@ -8,8 +8,8 @@ namespace chatable.Models
     {
         [PrimaryKey("id", true)]
         public Guid Id { get; set; }
-        [Column("username")]
-        public int UserId { get; set; }
+        [Column("user_id")]
+        public string UserId { get; set; }
         [Column("token")]
         public string Token { get; set; }
         [Column("jwt_id")]
