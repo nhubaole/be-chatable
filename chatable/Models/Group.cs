@@ -9,8 +9,6 @@ namespace chatable.Models
         public string GroupId { get; set; }
         [Column("group_name")]
         public string GroupName { get; set; }
-        [Column("conversation_id")]
-        public string ConversationId { get; set; }
         [Column("owner_id")]
         public string AdminId { get; set; }
         [Column("avatar")]

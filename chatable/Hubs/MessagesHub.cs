@@ -46,6 +46,7 @@ namespace chatable.Hubs
 
             Message message = new Message()
             {
+                MessageId = new Guid(),
                 SenderId = messageRes.SenderId,
                 MessageType = messageRes.MessageType,
                 Content = messageRes.Content,
@@ -82,6 +83,7 @@ namespace chatable.Hubs
 
             Message message = new Message()
             {
+                MessageId = new Guid(),
                 SenderId = messageRes.SenderId,
                 MessageType = messageRes.MessageType,
                 Content = messageRes.Content,
@@ -118,7 +120,7 @@ namespace chatable.Hubs
                     {
                         ConversationId = $"{senderId}_{receiverId}",
                         ConversationType = "Peer",
-                        LastMessage = 2,
+                        LastMessage = Guid.Empty,
                         UnreadMessageCount = 0
                     }
                     );
@@ -154,7 +156,7 @@ namespace chatable.Hubs
                     {
                         ConversationId = groupId,
                         ConversationType = "Group",
-                        LastMessage = 2,
+                        LastMessage = Guid.Empty,
                         UnreadMessageCount = 0
                     }
                     );

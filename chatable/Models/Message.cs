@@ -7,7 +7,7 @@ namespace chatable.Models
     public class Message : BaseModel
     {
         [PrimaryKey("message_id", false)]
-        public int MessageId { get; set; }
+        public Guid MessageId { get; set; }
 
         [Column("sender_id")]
         public string SenderId { get; set; }

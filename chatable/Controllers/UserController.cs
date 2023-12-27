@@ -4,7 +4,6 @@ using chatable.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Supabase;
-using System.Reflection.Metadata.Ecma335;
 using System.Security.Claims;
 
 namespace chatable.Controllers
@@ -13,6 +12,8 @@ namespace chatable.Controllers
     [ApiController]
     public class UserController : Controller
     {
+        private int dd;
+
         // Get user by id
         [HttpGet("{UserName}")]
         public async Task<ActionResult<User>> GetUserById(string UserName, [FromServices] Client client)
@@ -28,11 +29,20 @@ namespace chatable.Controllers
                     throw new Exception();
                 }
 
-                var userResponse = new UserResponse
+                //var  = new UserResponse
+                //{
+                //    UserName = user.UserName,
+                //    FullName = user.FullName,
+                //    CreateAt = user.CreatedAt
+                //};
+                var userResponse = new ProfileUser
                 {
                     UserName = user.UserName,
                     FullName = user.FullName,
-                    CreateAt = user.CreatedAt
+                    Email = user.Email,
+                    DOB = user.DOB,
+                    Gender = user.Gender,
+                    AvatarUrl = user.Avatar
                 };
 
                 return Ok(new ApiResponse
@@ -65,15 +75,19 @@ namespace chatable.Controllers
                 {
                     throw new Exception();
                 }
-                List<UserResponse> result = new List<UserResponse>();
+                List<ProfileUser> result = new List<ProfileUser>();
                 foreach (var user in users)
                 {
-                    var usersResponse = new UserResponse
+                    var usersResponse = new ProfileUser
                     {
                         UserName = user.UserName,
                         FullName = user.FullName,
-                        CreateAt = user.CreatedAt
+                        Email = user.Email,
+                        DOB = user.DOB,
+                        Gender = user.Gender,
+                        AvatarUrl = user.Avatar,
                     };
+
                     result.Add(usersResponse);
                 }
 
@@ -103,11 +117,20 @@ namespace chatable.Controllers
                 var currentUser = GetCurrentUser();
                 var response = await client.From<User>().Where(x => x.UserName == currentUser.UserName).Get();
                 var currUser = response.Models.FirstOrDefault();
+                var user = new ProfileUser
+                {
+                    UserName = currentUser.UserName,
+                    FullName = currentUser.FullName,
+                    Email = currentUser.Email,
+                    DOB = currentUser.DOB,
+                    Gender = currentUser.Gender,
+                    AvatarUrl = currentUser.Avatar,
+                };
                 return Ok(new ApiResponse
                 {
                     Success = true,
                     Message = "Successful.",
-                    Data = currUser
+                    Data = user
                 });
             }
             catch (Exception ex)
@@ -151,6 +174,55 @@ namespace chatable.Controllers
                     Success = true,
                     Message = "Edit successful.",
                     Data = updatedUser
+                });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new ApiResponse
+                {
+                    Success = false,
+                    Message = ex.Message
+                });
+            }
+        }
+
+        [HttpPost("UploadAvatar")]
+        [Authorize]
+        public async Task<IActionResult> UploadAvatar([FromForm] IFormFile file, [FromServices] Client client)
+        {
+            var currentUser = GetCurrentUser();
+            try
+            {
+
+                using var memoryStream = new MemoryStream();
+
+                await file.CopyToAsync(memoryStream);
+
+                var lastIndexOfDot = file.FileName.LastIndexOf('.');
+                string extension = file.FileName.Substring(lastIndexOfDot + 1);
+                string updatedTime = DateTime.Now.ToString("yyyy-dd-MM-HH-mm-ss");
+                string fileName = $"user-{currentUser.UserName}?t={updatedTime}.{extension}";
+                await client.Storage.From("users-avatar").Upload(
+                    memoryStream.ToArray(),
+                   fileName,
+                    new Supabase.Storage.FileOptions
+                    {
+                        CacheControl = "3600",
+                        Upsert = true
+
+                    });
+                var avatarUrl = client.Storage.From("users-avatar")
+                                            .GetPublicUrl(fileName);
+                var updateAvatar = await client
+                                  .From<User>()
+                                  .Where(x => x.UserName == currentUser.UserName)
+                                  .Set(x => x.Avatar, avatarUrl)
+                                  .Update();
+                return Ok(new ApiResponse
+                {
+                    Success = true,
+                    Message = "Upload image successful.",
+                    Data = avatarUrl
                 });
             }
             catch (Exception ex)
