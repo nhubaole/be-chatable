@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
+using NETCore.MailKit.Core;
 using Supabase;
 using System.Configuration;
 using System.IdentityModel.Tokens.Jwt;
@@ -26,7 +27,6 @@ namespace chatable.Controllers
         public AuthController(IConfiguration configuration)
         {
             _configuration = configuration;
-
         }
 
         [HttpPost("Register")]
@@ -262,6 +262,36 @@ namespace chatable.Controllers
 
                 });
             }
+        }
+
+        [HttpPost("ForgotPassword")]
+        public async Task<IActionResult> ForgotPassword(string email, [FromServices] Client client)
+        {
+            try
+            {
+                //var response = await client.From<User>().Where(x => x.Email == email).Get();
+                //var user = response.Models.FirstOrDefault();
+                //if (user == null)
+                //{
+                //    return NotFound(new ApiResponse
+                //    {
+                //        Success = false,
+                //        Message = "User not found."
+                //    });
+                //}
+                //var token = await TokenManager.GenerateToken(user, _configuration, client);
+                await client.Auth.ResetPasswordForEmail(email);
+                return Ok();
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new ApiResponse
+                {
+                    Success = false,
+                    Message = ex.Message
+                });
+            }
+
         }
         private User GetCurrentUser()
         {

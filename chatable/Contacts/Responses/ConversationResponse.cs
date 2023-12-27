@@ -5,5 +5,6 @@
         public string ConversationId;
         public string ConversationType;
         public MessageResponse LastMessage;
+        //avt, nickname 
     }
 }
