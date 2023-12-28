@@ -4,10 +4,12 @@ using chatable.Contacts.Responses;
 using chatable.Helper;
 using chatable.Models;
 using chatable.Services;
+using EmailService;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
+using MimeKit;
 using NETCore.MailKit.Core;
 using Supabase;
 using System.Configuration;
@@ -23,10 +25,11 @@ namespace chatable.Controllers
     public class AuthController : Controller
     {
         private readonly IConfiguration _configuration;
-
-        public AuthController(IConfiguration configuration)
+        private readonly IEmailSender _emailSender;
+        public AuthController(IConfiguration configuration, IEmailSender emailSender)
         {
             _configuration = configuration;
+            _emailSender = emailSender;
         }
 
         [HttpPost("Register")]
@@ -265,22 +268,18 @@ namespace chatable.Controllers
         }
 
         [HttpPost("ForgotPassword")]
-        public async Task<IActionResult> ForgotPassword(string email, [FromServices] Client client)
+        public async Task<IActionResult> ForgotPassword(string email)
         {
             try
             {
-                //var response = await client.From<User>().Where(x => x.Email == email).Get();
-                //var user = response.Models.FirstOrDefault();
-                //if (user == null)
-                //{
-                //    return NotFound(new ApiResponse
-                //    {
-                //        Success = false,
-                //        Message = "User not found."
-                //    });
-                //}
-                //var token = await TokenManager.GenerateToken(user, _configuration, client);
-                await client.Auth.ResetPasswordForEmail(email);
+
+                var message = new EmailService.Message
+                (
+                    new string[] { "nhkhang.7123@gmail.com" },
+                    "test",
+                    "this is content"
+                );
+                _emailSender.SendEmail(message);
                 return Ok();
             }
             catch (Exception ex)

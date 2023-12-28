@@ -2,6 +2,7 @@
 using chatable.Hubs;
 using chatable.Models;
 using chatable.Services;
+using EmailService;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.IdentityModel.Tokens;
@@ -68,11 +69,11 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             }
         };
     });
-//var emailConfig = builder.Configuration.GetSection("EmailConfiguration")
-//  .Get<EmailConfiguration>();
+var emailConfig = builder.Configuration.GetSection("EmailConfiguration")
+  .Get<EmailConfiguration>();
 
-//builder.Services.AddSingleton(emailConfig);
-//builder.Services.AddScoped<IEmailSender, EmailSender>();
+builder.Services.AddSingleton(emailConfig);
+builder.Services.AddScoped<IEmailSender, EmailSender>();
 
 builder.Services.AddAuthorization();
 
