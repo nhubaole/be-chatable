@@ -275,7 +275,7 @@ namespace chatable.Controllers
 
                 var message = new EmailService.Message
                 (
-                    new string[] { "nhkhang.7123@gmail.com" },
+                    new string[] { email },
                     "test",
                     "this is content"
                 );
