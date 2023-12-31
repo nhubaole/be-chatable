@@ -6,7 +6,7 @@ namespace chatable.Models
     [Table("_message")]
     public class Message : BaseModel
     {
-        [PrimaryKey("message_id", false)]
+        [PrimaryKey("message_id", true)]
         public Guid MessageId { get; set; }
 
         [Column("sender_id")]
