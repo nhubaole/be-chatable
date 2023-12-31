@@ -3,7 +3,9 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.7.34202.233
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "chatable", "chatable\chatable.csproj", "{87C485FC-BE32-4C3D-8F6B-25A7BC99037E}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "chatable", "chatable\chatable.csproj", "{87C485FC-BE32-4C3D-8F6B-25A7BC99037E}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EmailService", "EmailService\EmailService.csproj", "{3EF667B3-CD51-49E0-913B-F035BE2CC3D0}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -15,6 +17,10 @@ Global
 		{87C485FC-BE32-4C3D-8F6B-25A7BC99037E}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{87C485FC-BE32-4C3D-8F6B-25A7BC99037E}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{87C485FC-BE32-4C3D-8F6B-25A7BC99037E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3EF667B3-CD51-49E0-913B-F035BE2CC3D0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3EF667B3-CD51-49E0-913B-F035BE2CC3D0}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3EF667B3-CD51-49E0-913B-F035BE2CC3D0}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3EF667B3-CD51-49E0-913B-F035BE2CC3D0}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

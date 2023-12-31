@@ -13,7 +13,7 @@ namespace chatable.Models
         public string ConversationType { get; set; }
 
         [Column("last_message")]
-        public int LastMessage { get; set; }
+        public Guid LastMessage { get; set; }
 
         [Column("unread_message_count")]
         public int UnreadMessageCount { get; set; }

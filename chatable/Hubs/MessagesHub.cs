@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.SignalR;
 using Microsoft.Build.Experimental.ProjectCache;
 using Microsoft.IdentityModel.Tokens;
 using Supabase;
+using System;
 using System.Security.Claims;
 
 namespace chatable.Hubs
@@ -46,6 +47,7 @@ namespace chatable.Hubs
 
             Message message = new Message()
             {
+                MessageId = Guid.NewGuid(),
                 SenderId = messageRes.SenderId,
                 MessageType = messageRes.MessageType,
                 Content = messageRes.Content,
@@ -82,6 +84,7 @@ namespace chatable.Hubs
 
             Message message = new Message()
             {
+                MessageId = Guid.NewGuid(),
                 SenderId = messageRes.SenderId,
                 MessageType = messageRes.MessageType,
                 Content = messageRes.Content,
@@ -118,7 +121,7 @@ namespace chatable.Hubs
                     {
                         ConversationId = $"{senderId}_{receiverId}",
                         ConversationType = "Peer",
-                        LastMessage = 2,
+                        LastMessage = Guid.Empty,
                         UnreadMessageCount = 0
                     }
                     );
@@ -154,7 +157,7 @@ namespace chatable.Hubs
                     {
                         ConversationId = groupId,
                         ConversationType = "Group",
-                        LastMessage = 2,
+                        LastMessage = Guid.Empty,
                         UnreadMessageCount = 0
                     }
                     );
