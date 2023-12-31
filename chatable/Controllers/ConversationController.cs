@@ -3,7 +3,9 @@ using chatable.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Supabase;
+using Supabase.Interfaces;
 using System.Security.Claims;
+using System.Text.RegularExpressions;
 
 namespace chatable.Controllers
 {
@@ -18,52 +20,89 @@ namespace chatable.Controllers
             var currentUser = GetCurrentUser();
             try
             {
+                List<ConversationResponse> conversationResponses = new List<ConversationResponse>();
+
                 var response = await client.From<Conversation>().Where(x => x.ConversationId.Contains($"_{currentUser.UserName}") || x.ConversationId.Contains($"{currentUser.UserName}_")).Get();
                 var conversations = response.Models;
 
-                if (conversations is null)
+                if(conversations != null)
                 {
-                    throw new Exception();
-                }
-
-                List<ConversationResponse> conversationResponses = new List<ConversationResponse>();
-                foreach (var conversation in conversations)
-                {
-                    string conversationId = conversation.ConversationId;
-                    if (conversationId.Contains($"_{currentUser.UserName}"))
+                    foreach (var conversation in conversations)
                     {
-                        conversationId = conversationId.Replace($"_{currentUser.UserName}", "");
-                    }
-                    if (conversationId.Contains($"{currentUser.UserName}_"))
-                    {
-                        conversationId = conversationId.Replace($"{currentUser.UserName}_", "");
-                    }
-
-                    var msgResponse = await client.From<Message>().Where(x => x.MessageId == conversation.LastMessage).Get();
-                    var msg = msgResponse.Models.FirstOrDefault();
-                    if (msg is null)
-                    {
-                        throw new Exception();
-                    }
-                    conversationResponses.Add(new ConversationResponse()
-                    {
-                        ConversationId = conversationId,
-                        ConversationType = conversation.ConversationType,
-                        LastMessage = new MessageResponse()
+                        string conversationId = conversation.ConversationId;
+                        if (conversationId.Contains($"_{currentUser.UserName}"))
                         {
-                            SenderId = msg.SenderId,
-                            Content = msg.Content,
-                            MessageType = msg.MessageType,
-                            SentAt = msg.SentAt,
+                            conversationId = conversationId.Replace($"_{currentUser.UserName}", "");
                         }
-                    });
+                        if (conversationId.Contains($"{currentUser.UserName}_"))
+                        {
+                            conversationId = conversationId.Replace($"{currentUser.UserName}_", "");
+                        }
+
+                        var msgResponse = await client.From<Message>().Where(x => x.MessageId == conversation.LastMessage).Get();
+                        var msg = msgResponse.Models.FirstOrDefault();
+                        if (msg is null)
+                        {
+                            throw new Exception();
+                        }
+                        conversationResponses.Add(new ConversationResponse()
+                        {
+                            ConversationId = conversationId,
+                            ConversationType = conversation.ConversationType,
+                            LastMessage = new MessageResponse()
+                            {
+                                SenderId = msg.SenderId,
+                                Content = msg.Content,
+                                MessageType = msg.MessageType,
+                                SentAt = msg.SentAt,
+                            }
+                        });
+                    }
                 }
+
+                var resGroups = await client.From<GroupParticipants>().Where(x => x.MemberId == currentUser.UserName).Get();
+                var groups = resGroups.Models;
+                if (groups != null)
+                {
+                    foreach (var group in groups)
+                    {
+                        var responseGroupCons = await client.From<Conversation>().Where(x => x.ConversationId == group.GroupId).Get();
+                        var groupConversations = responseGroupCons.Models;
+
+                        if (groupConversations != null)
+                        {
+                            foreach (var groupConversation in groupConversations)
+                            {
+                                var msgResponse = await client.From<Message>().Where(x => x.MessageId == groupConversation.LastMessage).Get();
+                                var msg = msgResponse.Models.FirstOrDefault();
+                                if (msg is null)
+                                {
+                                    throw new Exception();
+                                }
+                                conversationResponses.Add(new ConversationResponse()
+                                {
+                                    ConversationId = groupConversation.ConversationId,
+                                    ConversationType = groupConversation.ConversationType,
+                                    LastMessage = new MessageResponse()
+                                    {
+                                        SenderId = msg.SenderId,
+                                        Content = msg.Content,
+                                        MessageType = msg.MessageType,
+                                        SentAt = msg.SentAt,
+                                    }
+                                });
+                            }
+                        }
+                    }
+                }
+
+                var sortedConversations = conversationResponses.OrderByDescending(conversation => conversation.LastMessage.SentAt).ToList();
 
                 return Ok(new ApiResponse
                 {
                     Success = true,
                     Message = "Successfuly",
-                    Data = conversationResponses
+                    Data = sortedConversations
                 });
             }
             catch (Exception)
@@ -126,31 +165,56 @@ namespace chatable.Controllers
             }
         }
 
-        [HttpGet("{UserName}/Messages")]
+        [HttpGet("{Type}/{ConversationId}/Messages")]
         [Authorize]
-        public async Task<ActionResult> GetMessagesFromAConversation(string UserName, [FromServices] Client client)
+        public async Task<ActionResult> GetMessagesFromAConversation(string Type, string ConversationId, [FromServices] Client client)
         {
             var currentUser = GetCurrentUser();
             try
             {
-                var response = await client.From<Message>().Where(x => x.ConversationId.Contains($"{UserName}_{currentUser.UserName}") || x.ConversationId.Contains($"{currentUser.UserName}_{UserName}")).Get();
-                var messages = response.Models;
-
-                if (messages is null || messages.Count == 0)
-                {
-                    throw new Exception();
-                }
-
                 var listMessage = new List<MessageResponse>();
-                foreach (var message in messages)
+
+                if (Type == "Peer")
                 {
-                    listMessage.Add(new MessageResponse()
+                    var response = await client.From<Message>().Where(x => x.ConversationId.Contains($"{ConversationId}_{currentUser.UserName}") || x.ConversationId.Contains($"{currentUser.UserName}_{ConversationId}")).Get();
+                    var messages = response.Models;
+
+                    if (messages is null || messages.Count == 0)
                     {
-                        Content = message.Content,
-                        MessageType = message.MessageType,
-                        SenderId = message.SenderId,
-                        SentAt = message.SentAt,
-                    });
+                        throw new Exception();
+                    }
+
+                    foreach (var message in messages)
+                    {
+                        listMessage.Add(new MessageResponse()
+                        {
+                            Content = message.Content,
+                            MessageType = message.MessageType,
+                            SenderId = message.SenderId,
+                            SentAt = message.SentAt,
+                        });
+                    }
+                }
+                else
+                {
+                    var response = await client.From<Message>().Where(x => x.ConversationId == ConversationId).Get();
+                    var messages = response.Models;
+
+                    if (messages is null || messages.Count == 0)
+                    {
+                        throw new Exception();
+                    }
+
+                    foreach (var message in messages)
+                    {
+                        listMessage.Add(new MessageResponse()
+                        {
+                            Content = message.Content,
+                            MessageType = message.MessageType,
+                            SenderId = message.SenderId,
+                            SentAt = message.SentAt,
+                        });
+                    }
                 }
 
                 return Ok(new ApiResponse

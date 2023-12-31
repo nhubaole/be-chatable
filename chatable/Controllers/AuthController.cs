@@ -4,10 +4,13 @@ using chatable.Contacts.Responses;
 using chatable.Helper;
 using chatable.Models;
 using chatable.Services;
+using EmailService;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
+using MimeKit;
+using NETCore.MailKit.Core;
 using Supabase;
 using System.Configuration;
 using System.IdentityModel.Tokens.Jwt;
@@ -22,11 +25,11 @@ namespace chatable.Controllers
     public class AuthController : Controller
     {
         private readonly IConfiguration _configuration;
-
-        public AuthController(IConfiguration configuration)
+        private readonly IEmailSender _emailSender;
+        public AuthController(IConfiguration configuration, IEmailSender emailSender)
         {
             _configuration = configuration;
-
+            _emailSender = emailSender;
         }
 
         [HttpPost("Register")]
@@ -262,6 +265,32 @@ namespace chatable.Controllers
 
                 });
             }
+        }
+
+        [HttpPost("ForgotPassword")]
+        public async Task<IActionResult> ForgotPassword(string email)
+        {
+            try
+            {
+
+                var message = new EmailService.Message
+                (
+                    new string[] { email },
+                    "test",
+                    "this is content"
+                );
+                _emailSender.SendEmail(message);
+                return Ok();
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new ApiResponse
+                {
+                    Success = false,
+                    Message = ex.Message
+                });
+            }
+
         }
         private User GetCurrentUser()
         {

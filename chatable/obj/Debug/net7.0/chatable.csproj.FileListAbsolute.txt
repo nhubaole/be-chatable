@@ -502,3 +502,9 @@ D:\Data\UIT\chatable\obj\Debug\net7.0\refint\chatable.dll
 D:\Data\UIT\chatable\obj\Debug\net7.0\chatable.pdb
 D:\Data\UIT\chatable\obj\Debug\net7.0\chatable.genruntimeconfig.cache
 D:\Data\UIT\chatable\obj\Debug\net7.0\ref\chatable.dll
+D:\Data\UIT\chatable\bin\Debug\net7.0\MailKit.dll
+D:\Data\UIT\chatable\bin\Debug\net7.0\MimeKit.dll
+D:\Data\UIT\chatable\bin\Debug\net7.0\NETCore.MailKit.dll
+D:\Data\UIT\chatable\bin\Debug\net7.0\BouncyCastle.Crypto.dll
+D:\Data\UIT\chatable\bin\Debug\net7.0\EmailService.dll
+D:\Data\UIT\chatable\bin\Debug\net7.0\EmailService.pdb
