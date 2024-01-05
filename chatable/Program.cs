@@ -62,7 +62,7 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
                 }
                 else
                 {
-                    context.Token = context.Request.Cookies["jwt"];
+                    context.Token = context.Request.Cookies["access"];
                 }
 
                 return Task.CompletedTask;
