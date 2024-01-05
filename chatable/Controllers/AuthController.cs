@@ -138,7 +138,8 @@ namespace chatable.Controllers
         {
             try
             {
-                Response.Cookies.Delete("jwt");
+                Response.Cookies.Delete("access");
+                Response.Cookies.Delete("refresh");
 
                 return Ok(new ApiResponse
                 {
