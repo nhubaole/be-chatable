@@ -23,5 +23,7 @@ namespace chatable.Contacts.Requests
         [Compare("Password", ErrorMessage = "The passwords do not match.")]
         public string? ConfirmPassword { get; set; }
 
+        [DataType(DataType.EmailAddress)]
+        public string? Email { get; set; }
     }
 }

@@ -119,12 +119,12 @@ namespace chatable.Controllers
                 var currUser = response.Models.FirstOrDefault();
                 var user = new ProfileUser
                 {
-                    UserName = currentUser.UserName,
-                    FullName = currentUser.FullName,
-                    Email = currentUser.Email,
-                    DOB = currentUser.DOB,
-                    Gender = currentUser.Gender,
-                    AvatarUrl = currentUser.Avatar,
+                    UserName = currUser.UserName,
+                    FullName = currUser.FullName,
+                    Email = currUser.Email,
+                    DOB = currUser.DOB,
+                    Gender = currUser.Gender,
+                    AvatarUrl = currUser.Avatar,
                 };
                 return Ok(new ApiResponse
                 {
