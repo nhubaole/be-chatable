@@ -96,31 +96,34 @@ namespace chatable.Controllers
                 List<ProfileUser> result = new List<ProfileUser>();
                 foreach (var user in users)
                 {
-                    bool isFriend;
-                    //check isFriend
-                    var friendResponse = await client.From<Friend>().Where(x => x.FriendId == user.UserName && x.UserId == currentUser.UserName).Get();
-                    var friend = friendResponse.Models.FirstOrDefault();
-                    if (friend != null)
+                    if(user.UserName != currentUser.UserName)
                     {
-                        isFriend = true;
-                    }
-                    else
-                    {
-                        isFriend = false;
-                    }
+                        bool isFriend;
+                        //check isFriend
+                        var friendResponse = await client.From<Friend>().Where(x => x.FriendId == user.UserName && x.UserId == currentUser.UserName).Get();
+                        var friend = friendResponse.Models.FirstOrDefault();
+                        if (friend != null)
+                        {
+                            isFriend = true;
+                        }
+                        else
+                        {
+                            isFriend = false;
+                        }
 
-                    var userResponse = new ProfileUser
-                    {
-                        UserName = user.UserName,
-                        FullName = user.FullName,
-                        Email = user.Email,
-                        DOB = user.DOB,
-                        Gender = user.Gender,
-                        AvatarUrl = user.Avatar,
-                        isFriend = isFriend
-                    };
+                        var userResponse = new ProfileUser
+                        {
+                            UserName = user.UserName,
+                            FullName = user.FullName,
+                            Email = user.Email,
+                            DOB = user.DOB,
+                            Gender = user.Gender,
+                            AvatarUrl = user.Avatar,
+                            isFriend = isFriend
+                        };
 
-                    result.Add(userResponse);
+                        result.Add(userResponse);
+                    }
                 }
 
                 return Ok(new ApiResponse
