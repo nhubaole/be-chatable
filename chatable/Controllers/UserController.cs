@@ -16,6 +16,7 @@ namespace chatable.Controllers
 
         // Get user by id
         [HttpGet("{UserName}")]
+        [Authorize]
         public async Task<ActionResult<User>> GetUserById(string UserName, [FromServices] Client client)
         {
             var currentUser = GetCurrentUser();
@@ -23,6 +24,7 @@ namespace chatable.Controllers
             {
                 var response = await client.From<User>().Where(x => x.UserName == UserName).Get();
                 var user = response.Models.FirstOrDefault();
+                bool isFriend;
 
                 if (user is null)
                 {
@@ -35,6 +37,19 @@ namespace chatable.Controllers
                 //    FullName = user.FullName,
                 //    CreateAt = user.CreatedAt
                 //};
+
+                //check isFriend
+                var friendResponse = await client.From<Friend>().Where(x => x.FriendId == UserName && x.UserId == currentUser.UserName).Get();
+                var friend = friendResponse.Models.FirstOrDefault();
+                if(friend != null)
+                {
+                    isFriend = true;
+                }
+                else
+                {
+                    isFriend = false;
+                }
+
                 var userResponse = new ProfileUser
                 {
                     UserName = user.UserName,
@@ -42,7 +57,8 @@ namespace chatable.Controllers
                     Email = user.Email,
                     DOB = user.DOB,
                     Gender = user.Gender,
-                    AvatarUrl = user.Avatar
+                    AvatarUrl = user.Avatar,
+                    isFriend = isFriend
                 };
 
                 return Ok(new ApiResponse
@@ -64,8 +80,10 @@ namespace chatable.Controllers
 
 
         [HttpGet]
+        [Authorize]
         public async Task<ActionResult<User>> GetAllUsers(Client client)
         {
+            var currentUser = GetCurrentUser();
             try
             {
                 var response = await client.From<User>().Get();
@@ -78,17 +96,34 @@ namespace chatable.Controllers
                 List<ProfileUser> result = new List<ProfileUser>();
                 foreach (var user in users)
                 {
-                    var usersResponse = new ProfileUser
+                    if(user.UserName != currentUser.UserName)
                     {
-                        UserName = user.UserName,
-                        FullName = user.FullName,
-                        Email = user.Email,
-                        DOB = user.DOB,
-                        Gender = user.Gender,
-                        AvatarUrl = user.Avatar,
-                    };
+                        bool isFriend;
+                        //check isFriend
+                        var friendResponse = await client.From<Friend>().Where(x => x.FriendId == user.UserName && x.UserId == currentUser.UserName).Get();
+                        var friend = friendResponse.Models.FirstOrDefault();
+                        if (friend != null)
+                        {
+                            isFriend = true;
+                        }
+                        else
+                        {
+                            isFriend = false;
+                        }
 
-                    result.Add(usersResponse);
+                        var userResponse = new ProfileUser
+                        {
+                            UserName = user.UserName,
+                            FullName = user.FullName,
+                            Email = user.Email,
+                            DOB = user.DOB,
+                            Gender = user.Gender,
+                            AvatarUrl = user.Avatar,
+                            isFriend = isFriend
+                        };
+
+                        result.Add(userResponse);
+                    }
                 }
 
                 return Ok(new ApiResponse
@@ -119,12 +154,12 @@ namespace chatable.Controllers
                 var currUser = response.Models.FirstOrDefault();
                 var user = new ProfileUser
                 {
-                    UserName = currentUser.UserName,
-                    FullName = currentUser.FullName,
-                    Email = currentUser.Email,
-                    DOB = currentUser.DOB,
-                    Gender = currentUser.Gender,
-                    AvatarUrl = currentUser.Avatar,
+                    UserName = currUser.UserName,
+                    FullName = currUser.FullName,
+                    Email = currUser.Email,
+                    DOB = currUser.DOB,
+                    Gender = currUser.Gender,
+                    AvatarUrl = currUser.Avatar,
                 };
                 return Ok(new ApiResponse
                 {

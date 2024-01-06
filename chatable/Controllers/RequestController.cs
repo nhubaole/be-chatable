@@ -198,6 +198,64 @@ namespace chatable.Controllers
             }
         }
 
+        [HttpGet("Received")]
+        [Authorize]
+        public async Task<ActionResult> GetReceivedRequests([FromServices] Client client)
+        {
+            try
+            {
+                var currentUser = GetCurrentUser();
+                var request = await client.From<Request>().Where(x => x.ReceiverId == currentUser.UserName).Get();
+                if (request.Models.Count != 0)
+                {
+                    return Ok(new ApiResponse
+                    {
+                        Success = true,
+                        Message = $"Get list received request successful",
+                        Data = request.Models
+                    });
+                }
+                throw new Exception();
+            }
+            catch (Exception ex)
+            {
+                return NotFound(new ApiResponse
+                {
+                    Success = false,
+                    Message = $"The request was not exist."
+                });
+            }
+        }
+
+        [HttpGet("Sent")]
+        [Authorize]
+        public async Task<ActionResult> GetSentRequests([FromServices] Client client)
+        {
+            try
+            {
+                var currentUser = GetCurrentUser();
+                var request = await client.From<Request>().Where(x => x.SenderId == currentUser.UserName).Get();
+                if (request.Models.Count != 0)
+                {
+                    return Ok(new ApiResponse
+                    {
+                        Success = true,
+                        Message = $"Get list sent request successful",
+                        Data = request.Models
+                    });
+                }
+                throw new Exception();
+            }
+            catch (Exception ex)
+            {
+                return NotFound(new ApiResponse
+                {
+                    Success = false,
+                    Message = $"The request was not exist."
+                });
+            }
+        }
+
         private User GetCurrentUser()
         {
             var identity = HttpContext.User.Identity as ClaimsIdentity;

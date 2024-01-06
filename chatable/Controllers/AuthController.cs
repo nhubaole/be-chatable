@@ -56,7 +56,8 @@ namespace chatable.Controllers
                     Gender = userRequest.Gender,
                     Password = passwordHash,
                     LastTimeOnl = DateTime.Now,
-                    CreatedAt = DateTime.Now
+                    CreatedAt = DateTime.Now,
+                    Email = userRequest.Email
                 };
 
                 var response = await client.From<User>().Insert(user);
