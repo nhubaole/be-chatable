@@ -5,7 +5,6 @@ using Microsoft.AspNetCore.Mvc;
 using Supabase;
 using Supabase.Interfaces;
 using System.Security.Claims;
-using System.Text.RegularExpressions;
 
 namespace chatable.Controllers
 {
@@ -39,12 +38,18 @@ namespace chatable.Controllers
                             conversationId = conversationId.Replace($"{currentUser.UserName}_", "");
                         }
 
+                        //get user infor
+                        var userResponse = await client.From<User>().Where(x => x.UserName == conversationId).Get();
+                        var user = userResponse.Models.FirstOrDefault();
+
+                        //get last message
                         var msgResponse = await client.From<Message>().Where(x => x.MessageId == conversation.LastMessage).Get();
                         var msg = msgResponse.Models.FirstOrDefault();
                         if (msg is null)
                         {
                             throw new Exception();
                         }
+
                         conversationResponses.Add(new ConversationResponse()
                         {
                             ConversationId = conversationId,
@@ -55,7 +60,9 @@ namespace chatable.Controllers
                                 Content = msg.Content,
                                 MessageType = msg.MessageType,
                                 SentAt = msg.SentAt,
-                            }
+                            },
+                            ConversationName = user.FullName,
+                            ConversationAvatar = user.Avatar
                         });
                     }
                 }
@@ -67,31 +74,36 @@ namespace chatable.Controllers
                     foreach (var group in groups)
                     {
                         var responseGroupCons = await client.From<Conversation>().Where(x => x.ConversationId == group.GroupId).Get();
-                        var groupConversations = responseGroupCons.Models;
+                        var groupConversation = responseGroupCons.Models.FirstOrDefault();
 
-                        if (groupConversations != null)
+                        if(groupConversation != null)
                         {
-                            foreach (var groupConversation in groupConversations)
+                            //get group info
+                            var res = await client.From<Group>().Where(x => x.GroupId == group.GroupId).Get();
+                            var groupResponse = res.Models.FirstOrDefault();
+
+                            //get last message
+                            var msgResponse = await client.From<Message>().Where(x => x.MessageId == groupConversation.LastMessage).Get();
+                            var msg = msgResponse.Models.FirstOrDefault();
+                            if (msg is null)
                             {
-                                var msgResponse = await client.From<Message>().Where(x => x.MessageId == groupConversation.LastMessage).Get();
-                                var msg = msgResponse.Models.FirstOrDefault();
-                                if (msg is null)
-                                {
-                                    throw new Exception();
-                                }
-                                conversationResponses.Add(new ConversationResponse()
-                                {
-                                    ConversationId = groupConversation.ConversationId,
-                                    ConversationType = groupConversation.ConversationType,
-                                    LastMessage = new MessageResponse()
-                                    {
-                                        SenderId = msg.SenderId,
-                                        Content = msg.Content,
-                                        MessageType = msg.MessageType,
-                                        SentAt = msg.SentAt,
-                                    }
-                                });
+                                throw new Exception();
                             }
+
+                            conversationResponses.Add(new ConversationResponse()
+                            {
+                                ConversationId = groupConversation.ConversationId,
+                                ConversationType = groupConversation.ConversationType,
+                                LastMessage = new MessageResponse()
+                                {
+                                    SenderId = msg.SenderId,
+                                    Content = msg.Content,
+                                    MessageType = msg.MessageType,
+                                    SentAt = msg.SentAt,
+                                },
+                                ConversationName = groupResponse.GroupName,
+                                ConversationAvatar = groupResponse.Avatar
+                            });
                         }
                     }
                 }
