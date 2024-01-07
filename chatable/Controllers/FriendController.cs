@@ -34,11 +34,12 @@ namespace chatable.Controllers
                     throw new Exception();
                 }
 
-                var userResponse = new UserResponse
+                var userResponse = new ProfileUser
                 {
                     UserName = user.UserName,
                     FullName = user.FullName,
-                    CreateAt = user.CreatedAt
+                    AvatarUrl = user.Avatar,
+                    isFriend = true
                 };
 
                 return Ok(new ApiResponse
@@ -75,17 +76,18 @@ namespace chatable.Controllers
                     throw new Exception();
                 }
 
-                List<UserResponse> result = new List<UserResponse>();
+                List<ProfileUser> result = new List<ProfileUser>();
                 foreach (var friend in friends)
                 {
                     var uResponse = await client.From<User>().Where(x => x.UserName == friend.FriendId).Get();
                     var user = uResponse.Models.FirstOrDefault();
 
-                    var usersResponse = new UserResponse
+                    var usersResponse = new ProfileUser
                     {
                         UserName = user.UserName,
                         FullName = user.FullName,
-                        CreateAt = user.CreatedAt
+                        AvatarUrl = user.Avatar,
+                        isFriend = true
                     };
                     result.Add(usersResponse);
                 }
