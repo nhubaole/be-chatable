@@ -1,20 +1,20 @@
 {
   "format": 1,
   "restore": {
-    "D:\\Data\\UIT\\chatable\\chatable.csproj": {}
+    "C:\\Users\\PC\\Desktop\\SE310\\be-chatable\\chatable\\chatable.csproj": {}
   },
   "projects": {
-    "D:\\Data\\UIT\\chatable\\chatable.csproj": {
+    "C:\\Users\\PC\\Desktop\\SE310\\be-chatable\\chatable\\chatable.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "D:\\Data\\UIT\\chatable\\chatable.csproj",
+        "projectUniqueName": "C:\\Users\\PC\\Desktop\\SE310\\be-chatable\\chatable\\chatable.csproj",
         "projectName": "chatable",
-        "projectPath": "D:\\Data\\UIT\\chatable\\chatable.csproj",
-        "packagesPath": "C:\\Users\\Ms.Trang\\.nuget\\packages\\",
-        "outputPath": "D:\\Data\\UIT\\chatable\\obj\\",
+        "projectPath": "C:\\Users\\PC\\Desktop\\SE310\\be-chatable\\chatable\\chatable.csproj",
+        "packagesPath": "C:\\Users\\PC\\.nuget\\packages\\",
+        "outputPath": "C:\\Users\\PC\\Desktop\\SE310\\be-chatable\\chatable\\obj\\",
         "projectStyle": "PackageReference",
         "configFilePaths": [
-          "C:\\Users\\Ms.Trang\\AppData\\Roaming\\NuGet\\NuGet.Config",
+          "C:\\Users\\PC\\AppData\\Roaming\\NuGet\\NuGet.Config",
           "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
         ],
         "originalTargetFrameworks": [
@@ -28,8 +28,8 @@
           "net7.0": {
             "targetAlias": "net7.0",
             "projectReferences": {
-              "D:\\Data\\UIT\\EmailService\\EmailService.csproj": {
-                "projectPath": "D:\\Data\\UIT\\EmailService\\EmailService.csproj"
+              "C:\\Users\\PC\\Desktop\\SE310\\be-chatable\\EmailService\\EmailService.csproj": {
+                "projectPath": "C:\\Users\\PC\\Desktop\\SE310\\be-chatable\\EmailService\\EmailService.csproj"
               }
             }
           }
@@ -108,21 +108,21 @@
               "privateAssets": "all"
             }
           },
-          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\7.0.402\\RuntimeIdentifierGraph.json"
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\8.0.100\\RuntimeIdentifierGraph.json"
         }
       }
     },
-    "D:\\Data\\UIT\\EmailService\\EmailService.csproj": {
+    "C:\\Users\\PC\\Desktop\\SE310\\be-chatable\\EmailService\\EmailService.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "D:\\Data\\UIT\\EmailService\\EmailService.csproj",
+        "projectUniqueName": "C:\\Users\\PC\\Desktop\\SE310\\be-chatable\\EmailService\\EmailService.csproj",
         "projectName": "EmailService",
-        "projectPath": "D:\\Data\\UIT\\EmailService\\EmailService.csproj",
-        "packagesPath": "C:\\Users\\Ms.Trang\\.nuget\\packages\\",
-        "outputPath": "D:\\Data\\UIT\\EmailService\\obj\\",
+        "projectPath": "C:\\Users\\PC\\Desktop\\SE310\\be-chatable\\EmailService\\EmailService.csproj",
+        "packagesPath": "C:\\Users\\PC\\.nuget\\packages\\",
+        "outputPath": "C:\\Users\\PC\\Desktop\\SE310\\be-chatable\\EmailService\\obj\\",
         "projectStyle": "PackageReference",
         "configFilePaths": [
-          "C:\\Users\\Ms.Trang\\AppData\\Roaming\\NuGet\\NuGet.Config",
+          "C:\\Users\\PC\\AppData\\Roaming\\NuGet\\NuGet.Config",
           "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
         ],
         "originalTargetFrameworks": [
@@ -173,7 +173,7 @@
               "privateAssets": "all"
             }
           },
-          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\7.0.402\\RuntimeIdentifierGraph.json"
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\8.0.100\\RuntimeIdentifierGraph.json"
         }
       }
     }

@@ -508,3 +508,9 @@ D:\Data\UIT\chatable\bin\Debug\net7.0\NETCore.MailKit.dll
 D:\Data\UIT\chatable\bin\Debug\net7.0\BouncyCastle.Crypto.dll
 D:\Data\UIT\chatable\bin\Debug\net7.0\EmailService.dll
 D:\Data\UIT\chatable\bin\Debug\net7.0\EmailService.pdb
+C:\Users\PC\Desktop\SE310\be-chatable\chatable\bin\Debug\net7.0\MailKit.dll
+C:\Users\PC\Desktop\SE310\be-chatable\chatable\bin\Debug\net7.0\MimeKit.dll
+C:\Users\PC\Desktop\SE310\be-chatable\chatable\bin\Debug\net7.0\NETCore.MailKit.dll
+C:\Users\PC\Desktop\SE310\be-chatable\chatable\bin\Debug\net7.0\BouncyCastle.Crypto.dll
+C:\Users\PC\Desktop\SE310\be-chatable\chatable\bin\Debug\net7.0\EmailService.dll
+C:\Users\PC\Desktop\SE310\be-chatable\chatable\bin\Debug\net7.0\EmailService.pdb

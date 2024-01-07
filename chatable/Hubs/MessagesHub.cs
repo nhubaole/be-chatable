@@ -210,7 +210,7 @@ namespace chatable.Hubs
                     var connectionRes = await _supabaseClient.From<GroupConnection>().Where(x => x.GroupId == group.GroupId).Get();
                     var groupConnection = connectionRes.Models.FirstOrDefault();
                     await Groups.AddToGroupAsync(userConnectionId, groupConnection.ConnectionId);
-                    Console.WriteLine($"---> {userId} just joined the group {group.GroupId}");
+                    //Console.WriteLine($"---> {userId} just joined the group {group.GroupId}");
                 }
             }
 
@@ -227,3 +227,11 @@ namespace chatable.Hubs
 
     }
 }
+
+/*
+nhubaole
+LeBaoNhu71!
+
+test
+Test1234@
+*/
