@@ -199,6 +199,11 @@ namespace chatable.Hubs
                                     .From<Connection>()
                                     .Insert(new Connection { UserId = userId, ConnectionId = userConnectionId });
             }
+            var updateStatusRes = await _supabaseClient
+                                .From<Connection>()
+                                .Where(x => x.UserId == userId)
+                                .Set(x => x.OnlineStatus, "online")
+                                .Update();
 
             //restore group connections
             var res = await _supabaseClient.From<GroupParticipants>().Where(x => x.MemberId == userId).Get();
@@ -223,6 +228,11 @@ namespace chatable.Hubs
             //var username = Context.User.Identity.Name;
             if (userId is null) return;
             Console.WriteLine($"---> {userId} left the chat right now");
+            var updateStatusRes = await _supabaseClient
+                                .From<Connection>()
+                                .Where(x => x.UserId == userId)
+                                .Set(x => x.OnlineStatus, DateTimeOffset.UtcNow.ToUnixTimeSeconds().ToString())
+                                .Update();
         }
 
     }

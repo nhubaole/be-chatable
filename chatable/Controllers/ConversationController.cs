@@ -127,45 +127,98 @@ namespace chatable.Controllers
             }
         }
 
-        [HttpGet("{UserName}")]
+        [HttpGet("{Type}/{ConversationId}")]
         [Authorize]
-        public async Task<ActionResult> GetConversationById(string UserName, [FromServices] Client client)
+        public async Task<ActionResult> GetConversationById(string Type, string ConversationId, [FromServices] Client client)
         {
             var currentUser = GetCurrentUser();
             try
             {
-                var response = await client.From<Conversation>().Where(x => x.ConversationId.Contains($"{UserName}_{currentUser.UserName}") || x.ConversationId.Contains($"{currentUser.UserName}_{UserName}")).Get();
-                var conversation = response.Models.FirstOrDefault();
+               if(Type == "Peer")
+               {
+                    var response = await client.From<Conversation>().Where(x => x.ConversationId.Contains($"{ConversationId}_{currentUser.UserName}") || x.ConversationId.Contains($"{currentUser.UserName}_{ConversationId}")).Get();
+                    var conversation = response.Models.FirstOrDefault();
 
-                if (conversation is null)
-                {
-                    throw new Exception();
-                }
-
-                var msgResponse = await client.From<Message>().Where(x => x.MessageId == conversation.LastMessage).Get();
-                var msg = msgResponse.Models.FirstOrDefault();
-                if (msg is null)
-                {
-                    throw new Exception();
-                }
-
-                return Ok(new ApiResponse
-                {
-                    Success = true,
-                    Message = "Successfuly",
-                    Data = new ConversationResponse()
+                    if (conversation is null)
                     {
-                        ConversationId = UserName,
-                        ConversationType = conversation.ConversationType,
-                        LastMessage = new MessageResponse()
-                        {
-                            SenderId = msg.SenderId,
-                            Content = msg.Content,
-                            MessageType = msg.MessageType,
-                            SentAt = msg.SentAt,
-                        }
+                        throw new Exception();
                     }
-                });
+
+                    //get user 
+                    var userResponse = await client.From<User>().Where(x => x.UserName == ConversationId).Get();
+                    User user = userResponse.Models.FirstOrDefault();
+
+                    //get last msg
+                    var msgResponse = await client.From<Message>().Where(x => x.MessageId == conversation.LastMessage).Get();
+                    var msg = msgResponse.Models.FirstOrDefault();
+                    if (msg is null)
+                    {
+                        throw new Exception();
+                    }
+
+                    return Ok(new ApiResponse
+                    {
+                        Success = true,
+                        Message = "Successfuly",
+                        Data = new ConversationResponse()
+                        {
+                            ConversationId = ConversationId,
+                            ConversationType = conversation.ConversationType,
+                            LastMessage = new MessageResponse()
+                            {
+                                SenderId = msg.SenderId,
+                                Content = msg.Content,
+                                MessageType = msg.MessageType,
+                                SentAt = msg.SentAt,
+                            },
+                            ConversationName = user.FullName,
+                            ConversationAvatar = user.Avatar
+
+                        }
+                    });
+               }
+               else
+                {
+                    var response = await client.From<Conversation>().Where(x => x.ConversationId == ConversationId).Get();
+                    var conversation = response.Models.FirstOrDefault();
+
+                    if (conversation is null)
+                    {
+                        throw new Exception();
+                    }
+
+                    //get group infor
+                    var groupResponse = await client.From<Group>().Where(x => x.GroupId == ConversationId).Get();
+                    Group group = groupResponse.Models.FirstOrDefault();
+
+                    //get last msg
+                    var msgResponse = await client.From<Message>().Where(x => x.MessageId == conversation.LastMessage).Get();
+                    var msg = msgResponse.Models.FirstOrDefault();
+                    if (msg is null)
+                    {
+                        throw new Exception();
+                    }
+
+                    return Ok(new ApiResponse
+                    {
+                        Success = true,
+                        Message = "Successfuly",
+                        Data = new ConversationResponse()
+                        {
+                            ConversationId = ConversationId,
+                            ConversationType = conversation.ConversationType,
+                            LastMessage = new MessageResponse()
+                            {
+                                SenderId = msg.SenderId,
+                                Content = msg.Content,
+                                MessageType = msg.MessageType,
+                                SentAt = msg.SentAt,
+                            },
+                            ConversationName = group.GroupName,
+                            ConversationAvatar = group.Avatar
+                        }
+                    });
+                }
             }
             catch (Exception)
             {
