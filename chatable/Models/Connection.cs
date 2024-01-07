@@ -11,5 +11,8 @@ namespace chatable.Models
 
         [Column("user_id")]
         public string UserId { get; set; }
+
+        [Column("online_status")]
+        public string OnlineStatus { get; set; }
     }
 }

@@ -1,9 +1,11 @@
 ﻿using chatable.Contacts.Requests;
 using chatable.Contacts.Responses;
+using chatable.Helper;
 using chatable.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Supabase;
+using System;
 using System.Security.Claims;
 
 namespace chatable.Controllers
@@ -267,6 +269,46 @@ namespace chatable.Controllers
                     Success = true,
                     Message = "Upload image successful.",
                     Data = avatarFileName
+                });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new ApiResponse
+                {
+                    Success = false,
+                    Message = ex.Message
+                });
+            }
+        }
+
+        [HttpGet("OnlineStatus/{UserName}")]
+        [Authorize]
+        public async Task<ActionResult<User>> GetOnlineStatus(String UserName, [FromServices] Client client)
+        {
+            try
+            {
+                var response = await client.From<Connection>().Where(x => x.UserId == UserName).Get();
+                var connection = response.Models.FirstOrDefault();
+
+                String status = "";
+                if(connection.OnlineStatus == "online")
+                {
+                    status = "Đang online";
+                }
+                else
+                {
+                    DateTime lastTimeOnline = Utils.UnixTimeStampToDateTime(long.Parse(connection.OnlineStatus.ToString()));
+                    TimeSpan timeDifference = DateTime.Now - lastTimeOnline;
+
+                    int minutesDifference = (int) timeDifference.TotalMinutes;
+                    status = "Online " + minutesDifference + " phút trước";
+                }
+
+                return Ok(new ApiResponse
+                {
+                    Success = true,
+                    Message = "Successful.",
+                    Data = status
                 });
             }
             catch (Exception ex)
