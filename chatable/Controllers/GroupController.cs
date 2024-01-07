@@ -117,12 +117,13 @@ namespace chatable.Controllers
                 {
                     var res = await client.From<Group>().Where(x => x.GroupId == group.GroupId).Get();
                     var groupResponse = res.Models.FirstOrDefault();
+                    groupResponse.Avatar = GetFileName(groupResponse.Avatar);
                     groupsList.Add(groupResponse);
                 }
                 return Ok(new ApiResponse
                 {
                     Success = true,
-                    Message = "Get all groups succesful.",
+                    Message = "Get all groups successful.",
                     Data = groupsList
                 });
             }
@@ -474,6 +475,17 @@ namespace chatable.Controllers
                 GroupId = groupId,
             };
             var res = await client.From<GroupConnection>().Insert(group);
+        }
+
+        private string GetFileName(string url)
+        {
+            if (url != null)
+            {
+                int lastSlashIndex = url.LastIndexOf('/');
+                string avatarFileName = url.Substring(lastSlashIndex + 1);
+                return avatarFileName;
+            }
+            return null;
         }
 
     }

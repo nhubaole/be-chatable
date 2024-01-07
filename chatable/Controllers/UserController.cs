@@ -41,7 +41,7 @@ namespace chatable.Controllers
                 //check isFriend
                 var friendResponse = await client.From<Friend>().Where(x => x.FriendId == UserName && x.UserId == currentUser.UserName).Get();
                 var friend = friendResponse.Models.FirstOrDefault();
-                if(friend != null)
+                if (friend != null)
                 {
                     isFriend = true;
                 }
@@ -49,7 +49,7 @@ namespace chatable.Controllers
                 {
                     isFriend = false;
                 }
-
+                var avatarFileName = GetFileName(user.Avatar);
                 var userResponse = new ProfileUser
                 {
                     UserName = user.UserName,
@@ -57,7 +57,7 @@ namespace chatable.Controllers
                     Email = user.Email,
                     DOB = user.DOB,
                     Gender = user.Gender,
-                    AvatarUrl = user.Avatar,
+                    AvatarUrl = avatarFileName,
                     isFriend = isFriend
                 };
 
@@ -96,7 +96,7 @@ namespace chatable.Controllers
                 List<ProfileUser> result = new List<ProfileUser>();
                 foreach (var user in users)
                 {
-                    if(user.UserName != currentUser.UserName)
+                    if (user.UserName != currentUser.UserName)
                     {
                         bool isFriend;
                         //check isFriend
@@ -110,7 +110,7 @@ namespace chatable.Controllers
                         {
                             isFriend = false;
                         }
-
+                        var avatarFileName = GetFileName(user.Avatar);
                         var userResponse = new ProfileUser
                         {
                             UserName = user.UserName,
@@ -118,7 +118,7 @@ namespace chatable.Controllers
                             Email = user.Email,
                             DOB = user.DOB,
                             Gender = user.Gender,
-                            AvatarUrl = user.Avatar,
+                            AvatarUrl = avatarFileName,
                             isFriend = isFriend
                         };
 
@@ -152,6 +152,8 @@ namespace chatable.Controllers
                 var currentUser = GetCurrentUser();
                 var response = await client.From<User>().Where(x => x.UserName == currentUser.UserName).Get();
                 var currUser = response.Models.FirstOrDefault();
+                var avatarFileName = GetFileName(currUser.Avatar);
+
                 var user = new ProfileUser
                 {
                     UserName = currUser.UserName,
@@ -159,7 +161,7 @@ namespace chatable.Controllers
                     Email = currUser.Email,
                     DOB = currUser.DOB,
                     Gender = currUser.Gender,
-                    AvatarUrl = currUser.Avatar,
+                    AvatarUrl = avatarFileName,
                 };
                 return Ok(new ApiResponse
                 {
@@ -253,11 +255,18 @@ namespace chatable.Controllers
                                   .Where(x => x.UserName == currentUser.UserName)
                                   .Set(x => x.Avatar, avatarUrl)
                                   .Update();
+
+                Uri uri = new Uri(avatarUrl);
+                string path = uri.AbsolutePath;
+
+                // Lấy phần cuối cùng của đường dẫn
+                string avatarFileName = Path.GetFileName(path);
+
                 return Ok(new ApiResponse
                 {
                     Success = true,
                     Message = "Upload image successful.",
-                    Data = avatarUrl
+                    Data = avatarFileName
                 });
             }
             catch (Exception ex)
@@ -282,6 +291,16 @@ namespace chatable.Controllers
                     UserName = userClaims.FirstOrDefault(o => o.Type == ClaimTypes.NameIdentifier)?.Value,
                     FullName = userClaims.FirstOrDefault(o => o.Type == ClaimTypes.Name)?.Value,
                 };
+            }
+            return null;
+        }
+        private string GetFileName(string url)
+        {
+            if (url != null)
+            {
+                int lastSlashIndex = url.LastIndexOf('/');
+                string avatarFileName = url.Substring(lastSlashIndex + 1);
+                return avatarFileName;
             }
             return null;
         }
