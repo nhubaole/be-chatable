@@ -6,7 +6,6 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.SignalR;
 using Supabase;
-using Supabase.Interfaces;
 using System.Security.Claims;
 
 namespace chatable.Controllers
@@ -35,7 +34,7 @@ namespace chatable.Controllers
                 var response = await client.From<Conversation>().Where(x => x.ConversationId.Contains($"_{currentUser.UserName}") || x.ConversationId.Contains($"{currentUser.UserName}_")).Get();
                 var conversations = response.Models;
 
-                if(conversations != null)
+                if (conversations != null)
                 {
                     foreach (var conversation in conversations)
                     {
@@ -87,7 +86,7 @@ namespace chatable.Controllers
                         var responseGroupCons = await client.From<Conversation>().Where(x => x.ConversationId == group.GroupId).Get();
                         var groupConversation = responseGroupCons.Models.FirstOrDefault();
 
-                        if(groupConversation != null)
+                        if (groupConversation != null)
                         {
                             //get group info
                             var res = await client.From<Group>().Where(x => x.GroupId == group.GroupId).Get();
@@ -145,8 +144,8 @@ namespace chatable.Controllers
             var currentUser = GetCurrentUser();
             try
             {
-               if(Type == "Peer")
-               {
+                if (Type == "Peer")
+                {
                     var response = await client.From<Conversation>().Where(x => x.ConversationId.Contains($"{ConversationId}_{currentUser.UserName}") || x.ConversationId.Contains($"{currentUser.UserName}_{ConversationId}")).Get();
                     var conversation = response.Models.FirstOrDefault();
 
@@ -187,8 +186,8 @@ namespace chatable.Controllers
 
                         }
                     });
-               }
-               else
+                }
+                else
                 {
                     var response = await client.From<Conversation>().Where(x => x.ConversationId == ConversationId).Get();
                     var conversation = response.Models.FirstOrDefault();
@@ -310,9 +309,9 @@ namespace chatable.Controllers
             }
         }
 
-        [HttpPost("Messages")]
+        [HttpPost("{Type}/{ConversationId}/Messages/{MessageType}")]
         [Authorize]
-        public async Task<ActionResult> AddFileMessage([FromForm] IFormFile file, [FromBody] AddMsgRequest request, [FromServices] Client client)
+        public async Task<ActionResult> AddFileMessage(string Type, string ConversationId, string MessageType, [FromForm] IFormFile file, [FromServices] Client client)
         {
             var currentUser = GetCurrentUser();
             try
@@ -323,7 +322,7 @@ namespace chatable.Controllers
                 var lastIndexOfDot = file.FileName.LastIndexOf('.');
                 string extension = file.FileName.Substring(lastIndexOfDot + 1);
                 string updatedTime = DateTime.Now.ToString("yyyy-dd-MM-HH-mm-ss");
-                string fileName = $"message-{currentUser.UserName}?t={updatedTime}.{extension}";
+                string fileName = $"message-{currentUser.UserName}-{updatedTime}.{extension}";
                 await client.Storage.From("message-file").Upload(
                     memoryStream.ToArray(),
                    fileName,
@@ -334,18 +333,147 @@ namespace chatable.Controllers
                     });
                 var fileUrl = client.Storage.From("message-file")
                                             .GetPublicUrl(fileName);
-                
+
                 Uri uri = new Uri(fileUrl);
-                string path = uri.AbsolutePath;
 
-                await _hubContext.Clients.All.SendAsync("SendPeerMessage", request.ConversationId, request.ConversationType, path);
+                if(Type == "Peer")
+                {
+                    //send peer msg
+                    var senderId = currentUser.UserName;
+                    var response = await client.From<Connection>().Where(x => x.UserId == ConversationId).Get();
+                    var receiver = response.Models.FirstOrDefault();
+
+                    var messageRes = new MessageResponse()
+                    {
+                        SenderId = senderId,
+                        MessageType = MessageType,
+                        Content = fileUrl,
+                        SentAt = DateTime.UtcNow,
+                    };
+
+                    await _hubContext
+                        .Clients
+                        .Client(receiver.ConnectionId)
+                        .SendAsync("MessageReceived", messageRes);
+
+                    String conversationId;
+
+                    //get conversationId
+                    String opt1 = senderId + "_" + receiver.UserId;
+                    String opt2 = receiver.UserId + "_" + senderId;
+                    var responseCon = await client.From<Conversation>()
+                                                      .Where(x => x.ConversationId == opt1 || x.ConversationId == opt2)
+                                                      .Get();
+                    var conversation = responseCon.Models.FirstOrDefault();
+                    if (conversation != null)
+                    {
+                        conversationId = conversation.ConversationId;
+                    }
+                    else
+                    {
+                        await client
+                        .From<Conversation>()
+                        .Insert(
+                        new Conversation
+                        {
+                            ConversationId = $"{senderId}_{receiver.UserId}",
+                            ConversationType = "Peer",
+                            LastMessage = Guid.Empty,
+                            UnreadMessageCount = 0
+                        }
+                        );
+                        conversationId = $"{senderId}_{receiver.UserId}";
+                    }
+
+
+                    //add message
+                    Message message = new Message()
+                    {
+                        MessageId = Guid.NewGuid(),
+                        SenderId = messageRes.SenderId,
+                        MessageType = messageRes.MessageType,
+                        Content = messageRes.Content,
+                        SentAt = messageRes.SentAt,
+                        ConversationId = conversationId
+                    };
+
+                    var responseInsertMsg = await client.From<Message>().Insert(message);
+                    var insertedMsg = responseInsertMsg.Models.FirstOrDefault();
+
+                    //update conversation
+                    await client.From<Conversation>()
+                      .Where(x => x.ConversationId == conversationId)
+                      .Set(x => x.LastMessage, insertedMsg.MessageId)
+                      .Update();
+                }
+                else
+                {
+                    //send group msg via hub
+                    var senderId = currentUser.UserName;
+                    var response = await client.From<GroupConnection>().Where(x => x.GroupId == ConversationId).Get();
+                    var receiver = response.Models.FirstOrDefault();
+
+                    var messageRes = new MessageResponse()
+                    {
+                        SenderId = senderId,
+                        MessageType = MessageType,
+                        Content = fileUrl,
+                        SentAt = DateTime.UtcNow,
+                        GroupId = ConversationId
+                    };
+
+                    var currConnectionRes = await client.From<Connection>().Where(x => x.UserId == currentUser.UserName).Get();
+                    var currConnection = currConnectionRes.Models.FirstOrDefault();
+
+                    await _hubContext.Clients
+                    .GroupExcept(receiver.ConnectionId, currConnection.ConnectionId)
+                    .SendAsync("MessageReceivedFromGroup", messageRes);
+
+                    //insert group conversation if not exist
+                    var responseCon = await client.From<Conversation>()
+                                                  .Where(x => x.ConversationId == ConversationId)
+                                                  .Get();
+                    var conversation = responseCon.Models.FirstOrDefault();
+                    if (conversation == null)
+                    {
+                        await client
+                        .From<Conversation>()
+                        .Insert(
+                        new Conversation
+                        {
+                            ConversationId = ConversationId,
+                            ConversationType = "Group",
+                            LastMessage = Guid.Empty,
+                            UnreadMessageCount = 0
+                        }
+                        );
+                    }
+
+                    //set last message
+                    Message message = new Message()
+                    {
+                        MessageId = Guid.NewGuid(),
+                        SenderId = messageRes.SenderId,
+                        MessageType = messageRes.MessageType,
+                        Content = messageRes.Content,
+                        SentAt = messageRes.SentAt,
+                        ConversationId = ConversationId
+                    };
+
+                    var responseInsertMsg = await client.From<Message>().Insert(message);
+                    var insertedMsg = responseInsertMsg.Models.FirstOrDefault();
+
+                    await client.From<Conversation>()
+                                   .Where(x => x.ConversationId == ConversationId)
+                                   .Set(x => x.LastMessage, insertedMsg.MessageId)
+                                   .Update();
+                }
                 
-
                 return Ok(new ApiResponse
                 {
                     Success = true,
                     Message = "Sent file successfully.",
-                    Data = Path.GetFileName(path)
+                    Data = fileUrl
                 });
             }
             catch (Exception)
