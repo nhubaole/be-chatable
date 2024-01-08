@@ -1,7 +1,10 @@
-﻿using chatable.Contacts.Responses;
+﻿using chatable.Contacts.Requests;
+using chatable.Contacts.Responses;
+using chatable.Hubs;
 using chatable.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.SignalR;
 using Supabase;
 using Supabase.Interfaces;
 using System.Security.Claims;
@@ -12,6 +15,14 @@ namespace chatable.Controllers
     [ApiController]
     public class ConversationController : Controller
     {
+
+        private readonly IHubContext<MessagesHub> _hubContext;
+
+        public ConversationController(IHubContext<MessagesHub> hubContext)
+        {
+            _hubContext = hubContext;
+        }
+
         [HttpGet]
         [Authorize]
         public async Task<ActionResult> GetAllConversation([FromServices] Client client)
@@ -287,6 +298,54 @@ namespace chatable.Controllers
                     Success = true,
                     Message = "Successfuly",
                     Data = listMessage
+                });
+            }
+            catch (Exception)
+            {
+                return NotFound(new ApiResponse
+                {
+                    Success = false,
+                    Message = $"Message not found"
+                });
+            }
+        }
+
+        [HttpPost("Messages")]
+        [Authorize]
+        public async Task<ActionResult> AddFileMessage([FromForm] IFormFile file, [FromBody] AddMsgRequest request, [FromServices] Client client)
+        {
+            var currentUser = GetCurrentUser();
+            try
+            {
+                using var memoryStream = new MemoryStream();
+                await file.CopyToAsync(memoryStream);
+
+                var lastIndexOfDot = file.FileName.LastIndexOf('.');
+                string extension = file.FileName.Substring(lastIndexOfDot + 1);
+                string updatedTime = DateTime.Now.ToString("yyyy-dd-MM-HH-mm-ss");
+                string fileName = $"message-{currentUser.UserName}?t={updatedTime}.{extension}";
+                await client.Storage.From("message-file").Upload(
+                    memoryStream.ToArray(),
+                   fileName,
+                    new Supabase.Storage.FileOptions
+                    {
+                        CacheControl = "3600",
+                        Upsert = true
+                    });
+                var fileUrl = client.Storage.From("message-file")
+                                            .GetPublicUrl(fileName);
+                
+                Uri uri = new Uri(fileUrl);
+                string path = uri.AbsolutePath;
+
+                await _hubContext.Clients.All.SendAsync("SendPeerMessage", request.ConversationId, request.ConversationType, path);
+                
+
+                return Ok(new ApiResponse
+                {
+                    Success = true,
+                    Message = "Sent file successfully.",
+                    Data = Path.GetFileName(path)
                 });
             }
             catch (Exception)
