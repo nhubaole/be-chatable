@@ -62,7 +62,7 @@ namespace chatable.Controllers
                                 SentAt = msg.SentAt,
                             },
                             ConversationName = user.FullName,
-                            ConversationAvatar = user.Avatar
+                            ConversationAvatar = GetFileName(user.Avatar)
                         });
                     }
                 }
@@ -102,7 +102,7 @@ namespace chatable.Controllers
                                     SentAt = msg.SentAt,
                                 },
                                 ConversationName = groupResponse.GroupName,
-                                ConversationAvatar = groupResponse.Avatar
+                                ConversationAvatar = GetFileName(groupResponse.Avatar)
                             });
                         }
                     }
@@ -172,7 +172,7 @@ namespace chatable.Controllers
                                 SentAt = msg.SentAt,
                             },
                             ConversationName = user.FullName,
-                            ConversationAvatar = user.Avatar
+                            ConversationAvatar = GetFileName(user.Avatar)
 
                         }
                     });
@@ -215,7 +215,7 @@ namespace chatable.Controllers
                                 SentAt = msg.SentAt,
                             },
                             ConversationName = group.GroupName,
-                            ConversationAvatar = group.Avatar
+                            ConversationAvatar = GetFileName(group.Avatar)
                         }
                     });
                 }
@@ -312,6 +312,17 @@ namespace chatable.Controllers
                     UserName = userClaims.FirstOrDefault(o => o.Type == ClaimTypes.NameIdentifier)?.Value,
                     FullName = userClaims.FirstOrDefault(o => o.Type == ClaimTypes.Name)?.Value,
                 };
+            }
+            return null;
+        }
+
+        private string GetFileName(string url)
+        {
+            if (url != null)
+            {
+                int lastSlashIndex = url.LastIndexOf('/');
+                string avatarFileName = url.Substring(lastSlashIndex + 1);
+                return avatarFileName;
             }
             return null;
         }
