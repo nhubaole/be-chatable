@@ -101,18 +101,18 @@ namespace chatable.Controllers
                     throw new UnauthorizedAccessException();
                 }
                 var token = await TokenManager.GenerateToken(user, _configuration, client);
-                Response.Cookies.Append("access", token.AccessToken, new CookieOptions //Save the access token in the browser cookies, Key is "access"
-                {
-                    HttpOnly = true,
-                    SameSite = SameSiteMode.None,
-                    Secure = true
-                });
-                Response.Cookies.Append("refresh", token.RefreshToken, new CookieOptions //Save the refresh token in the browser cookies, Key is "refresh"
-                {
-                    HttpOnly = true,
-                    SameSite = SameSiteMode.None,
-                    Secure = true
-                });
+                //Response.Cookies.Append("access", token.AccessToken, new CookieOptions //Save the access token in the browser cookies, Key is "access"
+                //{
+                //    HttpOnly = true,
+                //    SameSite = SameSiteMode.None,
+                //    Secure = true
+                //});
+                //Response.Cookies.Append("refresh", token.RefreshToken, new CookieOptions //Save the refresh token in the browser cookies, Key is "refresh"
+                //{
+                //    HttpOnly = true,
+                //    SameSite = SameSiteMode.None,
+                //    Secure = true
+                //});
 
                 return Ok(new ApiResponse
                 {
@@ -142,8 +142,8 @@ namespace chatable.Controllers
         {
             try
             {
-                Response.Cookies.Delete("access");
-                Response.Cookies.Delete("refresh");
+                //Response.Cookies.Delete("access");
+                //Response.Cookies.Delete("refresh");
 
                 return Ok(new ApiResponse
                 {
@@ -252,18 +252,18 @@ namespace chatable.Controllers
                 var res = await client.From<User>().Where(x => x.UserName == storedToken.UserId).Get();
                 var currentUser = res.Models.FirstOrDefault();
                 var token = await TokenManager.GenerateToken(currentUser, _configuration, client);
-                Response.Cookies.Append("access", token.AccessToken, new CookieOptions //Save the access token in the browser cookies, Key is "access"
-                {
-                    HttpOnly = true,
-                    SameSite = SameSiteMode.None,
-                    Secure = true
-                });
-                Response.Cookies.Append("refresh", token.RefreshToken, new CookieOptions //Save the refresh token in the browser cookies, Key is "refresh"
-                {
-                    HttpOnly = true,
-                    SameSite = SameSiteMode.None,
-                    Secure = true
-                });
+                //Response.Cookies.Append("access", token.AccessToken, new CookieOptions //Save the access token in the browser cookies, Key is "access"
+                //{
+                //    HttpOnly = true,
+                //    SameSite = SameSiteMode.None,
+                //    Secure = true
+                //});
+                //Response.Cookies.Append("refresh", token.RefreshToken, new CookieOptions //Save the refresh token in the browser cookies, Key is "refresh"
+                //{
+                //    HttpOnly = true,
+                //    SameSite = SameSiteMode.None,
+                //    Secure = true
+                //});
 
                 return Ok(new ApiResponse
                 {

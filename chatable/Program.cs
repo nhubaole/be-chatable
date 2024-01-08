@@ -62,7 +62,12 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
                 }
                 else
                 {
-                    context.Token = context.Request.Cookies["access"];
+                    string authorizationHeader = context.Request.Headers["Authorization"];
+                    if (!string.IsNullOrEmpty(authorizationHeader))
+                    {
+                        string token = authorizationHeader.Substring("Bearer ".Length).Trim();
+                        context.Token = token;
+                    }
                 }
 
                 return Task.CompletedTask;
