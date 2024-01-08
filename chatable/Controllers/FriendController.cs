@@ -38,7 +38,7 @@ namespace chatable.Controllers
                 {
                     UserName = user.UserName,
                     FullName = user.FullName,
-                    AvatarUrl = user.Avatar,
+                    AvatarUrl = GetFileName(user.Avatar),
                     isFriend = true
                 };
 
@@ -86,7 +86,7 @@ namespace chatable.Controllers
                     {
                         UserName = user.UserName,
                         FullName = user.FullName,
-                        AvatarUrl = user.Avatar,
+                        AvatarUrl = GetFileName(user.Avatar),
                         isFriend = true
                     };
                     result.Add(usersResponse);
@@ -165,6 +165,17 @@ namespace chatable.Controllers
                     UserName = userClaims.FirstOrDefault(o => o.Type == ClaimTypes.NameIdentifier)?.Value,
                     FullName = userClaims.FirstOrDefault(o => o.Type == ClaimTypes.Name)?.Value,
                 };
+            }
+            return null;
+        }
+
+        private string GetFileName(string url)
+        {
+            if (url != null)
+            {
+                int lastSlashIndex = url.LastIndexOf('/');
+                string avatarFileName = url.Substring(lastSlashIndex + 1);
+                return avatarFileName;
             }
             return null;
         }
