@@ -248,48 +248,39 @@ namespace chatable.Controllers
             try
             {
                 var listMessage = new List<MessageResponse>();
+                List<Message> messages;
 
                 if (Type == "Peer")
                 {
                     var response = await client.From<Message>().Where(x => x.ConversationId.Contains($"{ConversationId}_{currentUser.UserName}") || x.ConversationId.Contains($"{currentUser.UserName}_{ConversationId}")).Get();
-                    var messages = response.Models;
-
-                    if (messages is null || messages.Count == 0)
-                    {
-                        throw new Exception();
-                    }
-
-                    foreach (var message in messages)
-                    {
-                        listMessage.Add(new MessageResponse()
-                        {
-                            Content = message.Content,
-                            MessageType = message.MessageType,
-                            SenderId = message.SenderId,
-                            SentAt = message.SentAt,
-                        });
-                    }
+                    messages = response.Models;
                 }
                 else
                 {
                     var response = await client.From<Message>().Where(x => x.ConversationId == ConversationId).Get();
-                    var messages = response.Models;
+                    messages = response.Models;
+                }
 
-                    if (messages is null || messages.Count == 0)
-                    {
-                        throw new Exception();
-                    }
+                if (messages is null)
+                {
+                    throw new Exception();
+                }
 
-                    foreach (var message in messages)
+                foreach (var message in messages)
+                {
+                    //get sender info
+                    var userResponse = await client.From<User>().Where(x => x.UserName == message.SenderId).Get();
+                    var user = userResponse.Models.FirstOrDefault();
+
+                    listMessage.Add(new MessageResponse()
                     {
-                        listMessage.Add(new MessageResponse()
-                        {
-                            Content = message.Content,
-                            MessageType = message.MessageType,
-                            SenderId = message.SenderId,
-                            SentAt = message.SentAt,
-                        });
-                    }
+                        Content = message.Content,
+                        MessageType = message.MessageType,
+                        SenderId = message.SenderId,
+                        SentAt = message.SentAt,
+                        SenderName = user.FullName,
+                        SenderAvatar = GetFileName(user.Avatar)
+                    });
                 }
 
                 return Ok(new ApiResponse
