@@ -138,13 +138,12 @@ namespace chatable.Controllers
         // [HttpGet("{GroupId}")]
 
         [HttpGet("{GroupId}/Member")]
-        [Authorize]
+        // [Authorize]
         public async Task<IActionResult> GetMembers(string GroupId, [FromServices] Client client)
         {
             //var currentUser = GetCurrentUser();
             try
             {
-
                 var response = await client.From<GroupParticipants>().Where(x => x.GroupId == GroupId).Get();
                 var groupParticipants = response.Models;
                 List<UserResponse> listMember = new List<UserResponse>();
