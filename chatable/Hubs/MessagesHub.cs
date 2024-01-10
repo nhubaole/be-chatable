@@ -244,7 +244,22 @@ namespace chatable.Hubs
                 Type = type,
             };
 
-            var responseInsertReaction = await _supabaseClient.From<Reaction>().Insert(reaction);
+            var getReactionRes = await _supabaseClient.From<Reaction>()
+                                                  .Where(x => x.MessageId == toMsgId && x.SenderId == senderId)
+                                                  .Get();
+            var react = getReactionRes.Models.FirstOrDefault();
+
+            if(react == null)
+            {
+                var responseInsertReaction = await _supabaseClient.From<Reaction>().Insert(reaction);
+            }
+            else
+            {
+                await _supabaseClient.From<Reaction>()
+                   .Where(x => x.MessageId == toMsgId && x.SenderId == senderId)
+                   .Set(x => x.Type, type)
+                   .Update();
+            }
         }
 
         public override async Task OnConnectedAsync()
