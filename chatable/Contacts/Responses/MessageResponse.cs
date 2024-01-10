@@ -5,6 +5,9 @@ namespace chatable.Contacts.Responses
     public class MessageResponse
     {
         [Required]
+        public Guid MessageId { get; set; }
+
+        [Required]
         public string SenderId { get; set; }
         [Required]
         public string MessageType { get; set; }
