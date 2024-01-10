@@ -7,5 +7,6 @@
         public MessageResponse LastMessage;
         public String ConversationName;
         public String ConversationAvatar;
+        public bool isFriend;
     }
 }

@@ -26,7 +26,6 @@ namespace chatable.Controllers
             {
                 var response = await client.From<User>().Where(x => x.UserName == UserName).Get();
                 var user = response.Models.FirstOrDefault();
-                bool isFriend;
 
                 if (user is null)
                 {
@@ -41,6 +40,7 @@ namespace chatable.Controllers
                 //};
 
                 //check isFriend
+                bool isFriend;
                 var friendResponse = await client.From<Friend>().Where(x => x.FriendId == UserName && x.UserId == currentUser.UserName).Get();
                 var friend = friendResponse.Models.FirstOrDefault();
                 if (friend != null)

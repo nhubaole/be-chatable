@@ -60,6 +60,19 @@ namespace chatable.Controllers
                             throw new Exception();
                         }
 
+                        //check isFriend
+                        bool isFriend;
+                        var friendResponse = await client.From<Friend>().Where(x => x.FriendId == conversationId && x.UserId == currentUser.UserName).Get();
+                        var friend = friendResponse.Models.FirstOrDefault();
+                        if (friend != null)
+                        {
+                            isFriend = true;
+                        }
+                        else
+                        {
+                            isFriend = false;
+                        }
+
                         conversationResponses.Add(new ConversationResponse()
                         {
                             ConversationId = conversationId,
@@ -72,7 +85,8 @@ namespace chatable.Controllers
                                 SentAt = msg.SentAt,
                             },
                             ConversationName = user.FullName,
-                            ConversationAvatar = GetFileName(user.Avatar)
+                            ConversationAvatar = GetFileName(user.Avatar),
+                            isFriend = isFriend,
                         });
                     }
                 }
@@ -166,6 +180,19 @@ namespace chatable.Controllers
                         throw new Exception();
                     }
 
+                    //check isFriend
+                    bool isFriend = false;
+                    var friendResponse = await client.From<Friend>().Where(x => x.FriendId == ConversationId && x.UserId == currentUser.UserName).Get();
+                    var friend = friendResponse.Models.FirstOrDefault();
+                    if (friend != null)
+                    {
+                        isFriend = true;
+                    }
+                    else
+                    {
+                        isFriend = false;
+                    }
+
                     return Ok(new ApiResponse
                     {
                         Success = true,
@@ -182,8 +209,8 @@ namespace chatable.Controllers
                                 SentAt = msg.SentAt,
                             },
                             ConversationName = user.FullName,
-                            ConversationAvatar = GetFileName(user.Avatar)
-
+                            ConversationAvatar = GetFileName(user.Avatar),
+                            isFriend = isFriend,
                         }
                     });
                 }
