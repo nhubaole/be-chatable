@@ -282,6 +282,7 @@ namespace chatable.Controllers
                         SenderAvatar = GetFileName(user.Avatar)
                     });
                 }
+                listMessage.Sort((m1, m2) => m1.SentAt.CompareTo(m2.SentAt));
 
                 return Ok(new ApiResponse
                 {
