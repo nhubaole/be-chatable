@@ -31,12 +31,18 @@ namespace chatable.Hubs
             var response = await _supabaseClient.From<Connection>().Where(x => x.UserId == toUsername).Get();
             var receiver = response.Models.FirstOrDefault();
 
+            //query sender info
+            var userResponse = await _supabaseClient.From<User>().Where(x => x.UserName == senderId).Get();
+            var user = userResponse.Models.FirstOrDefault();
+
             var messageRes = new MessageResponse()
             {
                 SenderId = senderId,
                 MessageType = messageType,
                 Content = content,
                 SentAt = DateTime.UtcNow,
+                SenderName = user.FullName,
+                SenderAvatar = GetFileName(user.Avatar)
             };
 
             await Clients
@@ -67,13 +73,19 @@ namespace chatable.Hubs
             var response = await _supabaseClient.From<GroupConnection>().Where(x => x.GroupId == groupId).Get();
             var receiver = response.Models.FirstOrDefault();
 
+            //query sender info
+            var userResponse = await _supabaseClient.From<User>().Where(x => x.UserName == senderId).Get();
+            var user = userResponse.Models.FirstOrDefault();
+
             var messageRes = new MessageResponse()
             {
                 SenderId = senderId,
                 MessageType = messageType,
                 Content = content,
                 SentAt = DateTime.UtcNow,
-                GroupId = groupId
+                GroupId = groupId,
+                SenderName = user.FullName,
+                SenderAvatar = GetFileName(user.Avatar)
             };
 
             await Clients
@@ -233,6 +245,17 @@ namespace chatable.Hubs
                                 .Where(x => x.UserId == userId)
                                 .Set(x => x.OnlineStatus, DateTimeOffset.UtcNow.ToUnixTimeSeconds().ToString())
                                 .Update();
+        }
+
+        private string GetFileName(string url)
+        {
+            if (url != null)
+            {
+                int lastSlashIndex = url.LastIndexOf('/');
+                string avatarFileName = url.Substring(lastSlashIndex + 1);
+                return avatarFileName;
+            }
+            return null;
         }
 
     }
