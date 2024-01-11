@@ -5,7 +5,9 @@ using chatable.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.SignalR;
+using MimeKit;
 using Supabase;
+using Supabase.Interfaces;
 using System.Security.Claims;
 using static MailKit.Net.Imap.ImapEvent;
 
@@ -27,19 +29,19 @@ namespace chatable.Controllers
         {
             try
             {
-                var user = GetCurrentUser();
+                var currentUser = GetCurrentUser();
                 if (friendRequest.ReceiverId == null)
                 {
                     throw new FormatException();
                 }
-                var requests = await client.From<Request>().Where(x => x.SenderId == user.UserName &&
+                var requests = await client.From<Request>().Where(x => x.SenderId == currentUser.UserName &&
                                                                     x.ReceiverId == friendRequest.ReceiverId).Get();
                 var result = requests.Models;
                 if (result.Count != 0)
                 {
                     if (requests.Model?.Status == "Decline")
                     {
-                        await client.From<Request>().Where(x => x.SenderId == user.UserName &&
+                        await client.From<Request>().Where(x => x.SenderId == currentUser.UserName &&
                                                                    x.ReceiverId == friendRequest.ReceiverId)
                                                                   .Set(x => x.Status, "Pending").Update();
                         return Ok(new ApiResponse
@@ -54,21 +56,28 @@ namespace chatable.Controllers
                 }
                 var request = new Request
                 {
-                    SenderId = user.UserName,
+                    SenderId = currentUser.UserName,
                     ReceiverId = friendRequest.ReceiverId,
                     Status = "Pending",
                     SentAt = DateTime.Now,
                 };
 
+
+                //get sender info
+                var userResponse = await client.From<User>().Where(x => x.UserName == request.SenderId).Get();
+                var user = userResponse.Models.FirstOrDefault();
+
                 //send realtime req
                 var requestRes = new RequestResponse
                 {
-                    SenderId = user.UserName,
-                    Status = "Pending",
-                    SentAt = DateTime.Now,
-                    ReceiverId = friendRequest.ReceiverId
+                    UserId = request.SenderId,
+                    Status = request.Status,
+                    SentAt = request.SentAt,
+                    Avatar = GetFileName(user.Avatar),
+                    Name = user.FullName
                 };
-                var connectionRes = await client.From<Connection>().Where(x => x.UserId == friendRequest.ReceiverId).Get();
+
+                var connectionRes = await client.From<Connection>().Where(x => x.UserId == request.ReceiverId).Get();
                 var receiver = connectionRes.Models.FirstOrDefault();
                 await _hubContext
                         .Clients
@@ -140,14 +149,21 @@ namespace chatable.Controllers
                     var updateFriend1 = await client.From<Friend>().Insert(friend1);
                     var updateFriend2 = await client.From<Friend>().Insert(friend2);
 
+
+                    //get reveiver info
+                    var userResponse = await client.From<User>().Where(x => x.UserName == res.ReceiverId).Get();
+                    var user = userResponse.Models.FirstOrDefault();
+
                     //send realtime req
                     var requestRes = new RequestResponse
                     {
-                        SenderId = res.SenderId,
+                        UserId = res.ReceiverId,
                         Status = res.Status,
                         SentAt = res.SentAt,
-                        ReceiverId = res.ReceiverId
+                        Avatar = GetFileName(user.Avatar),
+                        Name = user.FullName
                     };
+
                     var connectionRes = await client.From<Connection>().Where(x => x.UserId == res.SenderId).Get();
                     var receiver = connectionRes.Models.FirstOrDefault();
                     await _hubContext
@@ -248,13 +264,31 @@ namespace chatable.Controllers
             {
                 var currentUser = GetCurrentUser();
                 var request = await client.From<Request>().Where(x => x.ReceiverId == currentUser.UserName).Get();
+                List<RequestResponse> requestResponses = new List<RequestResponse>();
+
                 if (request.Models.Count != 0)
                 {
+                    foreach (var response in request.Models)
+                    {
+                        //get sender info
+                        var userResponse = await client.From<User>().Where(x => x.UserName == response.SenderId).Get();
+                        var user = userResponse.Models.FirstOrDefault();
+
+                        requestResponses.Add(new RequestResponse()
+                        {
+                            UserId = response.SenderId,
+                            Status = response.Status,
+                            SentAt = response.SentAt,
+                            Avatar = GetFileName(user.Avatar),
+                            Name = user.FullName,
+                        });
+                    }
+
                     return Ok(new ApiResponse
                     {
                         Success = true,
                         Message = $"Get list received request successful",
-                        Data = request.Models
+                        Data = requestResponses
                     });
                 }
                 throw new Exception();
@@ -277,13 +311,31 @@ namespace chatable.Controllers
             {
                 var currentUser = GetCurrentUser();
                 var request = await client.From<Request>().Where(x => x.SenderId == currentUser.UserName).Get();
+                List<RequestResponse> requestResponses = new List<RequestResponse>();
+
                 if (request.Models.Count != 0)
                 {
+                    foreach (var response in request.Models)
+                    {
+                        //get receiver info
+                        var userResponse = await client.From<User>().Where(x => x.UserName == response.ReceiverId).Get();
+                        var user = userResponse.Models.FirstOrDefault();
+
+                        requestResponses.Add(new RequestResponse()
+                        {
+                            UserId = response.ReceiverId,
+                            Status = response.Status,
+                            SentAt = response.SentAt,
+                            Avatar = GetFileName(user.Avatar),
+                            Name = user.FullName,
+                        });
+                    }
+
                     return Ok(new ApiResponse
                     {
                         Success = true,
                         Message = $"Get list sent request successful",
-                        Data = request.Models
+                        Data = requestResponses
                     });
                 }
                 throw new Exception();
@@ -311,6 +363,17 @@ namespace chatable.Controllers
                     UserName = userClaims.FirstOrDefault(o => o.Type == ClaimTypes.NameIdentifier)?.Value,
                     FullName = userClaims.FirstOrDefault(o => o.Type == ClaimTypes.Name)?.Value,
                 };
+            }
+            return null;
+        }
+
+        private string GetFileName(string url)
+        {
+            if (url != null)
+            {
+                int lastSlashIndex = url.LastIndexOf('/');
+                string avatarFileName = url.Substring(lastSlashIndex + 1);
+                return avatarFileName;
             }
             return null;
         }

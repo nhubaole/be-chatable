@@ -1,12 +1,12 @@
-﻿using Postgrest.Attributes;
-
+﻿
 namespace chatable.Contacts.Responses
 {
     public class RequestResponse
     {
-        public string SenderId { get; set; }
-        public string ReceiverId { get; set; }
+        public string UserId { get; set; }
         public string Status { get; set; }
         public DateTime SentAt { get; set; }
+        public string Avatar { get; set; }
+        public string Name { get; set; }
     }
 }
