@@ -252,12 +252,18 @@ namespace chatable.Hubs
                 var response = await _supabaseClient.From<Connection>().Where(x => x.UserId == conversationId).Get();
                 var receiver = response.Models.FirstOrDefault();
 
+                //get sender reaction
+                var reacterResponse = await _supabaseClient.From<User>().Where(x => x.UserName == senderId).Get();
+                var reacter = reacterResponse.Models.FirstOrDefault();
+
                 var reactionRes = new ReactionResponse()
                 {
                     ConversationId = senderId,
                     MessageId = toMsgId,
                     Type = type,
-                    SenderId = senderId
+                    SenderId = senderId,
+                    SenderAvatar = GetFileName(reacter.Avatar),
+                    SenderName = reacter.FullName
                 };
 
                 await Clients
@@ -269,12 +275,18 @@ namespace chatable.Hubs
                 var response = await _supabaseClient.From<GroupConnection>().Where(x => x.GroupId == conversationId).Get();
                 var receiver = response.Models.FirstOrDefault();
 
+                //get sender reaction
+                var reacterResponse = await _supabaseClient.From<User>().Where(x => x.UserName == senderId).Get();
+                var reacter = reacterResponse.Models.FirstOrDefault();
+
                 var reactionRes = new ReactionResponse()
                 {
                     ConversationId = conversationId,
                     MessageId = toMsgId,
                     Type = type,
-                    SenderId = senderId
+                    SenderId = senderId,
+                    SenderAvatar = GetFileName(reacter.Avatar),
+                    SenderName = reacter.FullName
                 };
 
                 await Clients

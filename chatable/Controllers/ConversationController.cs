@@ -324,7 +324,7 @@ namespace chatable.Controllers
                             Type = reaction.Type,
                             ConversationId = message.ConversationId,
                             SenderName = reacter.FullName,
-                            SenderAvatar = reacter.Avatar
+                            SenderAvatar = GetFileName(reacter.Avatar)
                         });
                     }
 
