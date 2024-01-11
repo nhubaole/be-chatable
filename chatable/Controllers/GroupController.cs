@@ -74,7 +74,7 @@ namespace chatable.Controllers
                     GroupName = request.GroupName,
                     AdminId = currentUser.UserName,
                     CreatedAt = DateTime.Now,
-                    Avatar = "https://goexjtmckylmpnrbxtcn.supabase.co/storage/v1/object/public/groups-avatar/group-default.png"
+                    Avatar = "https://goexjtmckylmpnrbxtcn.supabase.co/storage/v1/object/public/groups-avatar/group-default"
                 };
                 var responseGroup = await client.From<Group>().Insert(Group);
 
