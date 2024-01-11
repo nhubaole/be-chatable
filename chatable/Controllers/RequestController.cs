@@ -171,6 +171,29 @@ namespace chatable.Controllers
                             .Client(receiver.ConnectionId)
                             .SendAsync("FriendRequestAccepted", requestRes);
 
+
+                    //create conversation
+                    String opt1 = res.SenderId + "_" + res.ReceiverId;
+                    String opt2 = res.ReceiverId + "_" + res.SenderId;
+                    var response = await client.From<Conversation>()
+                                                      .Where(x => x.ConversationId == opt1 || x.ConversationId == opt2)
+                                                      .Get();
+                    var conversation = response.Models.FirstOrDefault();
+                    if (conversation == null)
+                    {
+                        await client
+                        .From<Conversation>()
+                        .Insert(
+                        new Conversation
+                        {
+                            ConversationId = $"{res.SenderId}_{res.ReceiverId}",
+                            ConversationType = "Peer",
+                            LastMessage = Guid.Empty,
+                            UnreadMessageCount = 0
+                        }
+                        );
+                    }
+
                     return Ok(new ApiResponse
                     {
                         Success = true,

@@ -55,9 +55,9 @@ namespace chatable.Controllers
                         //get last message
                         var msgResponse = await client.From<Message>().Where(x => x.MessageId == conversation.LastMessage).Get();
                         var msg = msgResponse.Models.FirstOrDefault();
-                        if (msg is null)
+                        if (msg == null)
                         {
-                            throw new Exception();
+                            msg = new Message() { };
                         }
 
                         //check isFriend
@@ -79,6 +79,7 @@ namespace chatable.Controllers
                             ConversationType = conversation.ConversationType,
                             LastMessage = new MessageResponse()
                             {
+                                MessageId = msg.MessageId,
                                 SenderId = msg.SenderId,
                                 Content = msg.Content,
                                 MessageType = msg.MessageType,
@@ -109,9 +110,9 @@ namespace chatable.Controllers
                             //get last message
                             var msgResponse = await client.From<Message>().Where(x => x.MessageId == groupConversation.LastMessage).Get();
                             var msg = msgResponse.Models.FirstOrDefault();
-                            if (msg is null)
+                            if (msg == null)
                             {
-                                throw new Exception();
+                                msg = new Message() { };
                             }
 
                             conversationResponses.Add(new ConversationResponse()
@@ -120,6 +121,7 @@ namespace chatable.Controllers
                                 ConversationType = groupConversation.ConversationType,
                                 LastMessage = new MessageResponse()
                                 {
+                                    MessageId = msg.MessageId,
                                     SenderId = msg.SenderId,
                                     Content = msg.Content,
                                     MessageType = msg.MessageType,
@@ -127,6 +129,7 @@ namespace chatable.Controllers
                                 },
                                 ConversationName = groupResponse.GroupName,
                                 ConversationAvatar = GetFileName(groupResponse.Avatar)
+                                
                             });
                         }
                     }
@@ -175,9 +178,9 @@ namespace chatable.Controllers
                     //get last msg
                     var msgResponse = await client.From<Message>().Where(x => x.MessageId == conversation.LastMessage).Get();
                     var msg = msgResponse.Models.FirstOrDefault();
-                    if (msg is null)
+                    if (msg == null)
                     {
-                        throw new Exception();
+                        msg = new Message() { };
                     }
 
                     //check isFriend
@@ -203,6 +206,7 @@ namespace chatable.Controllers
                             ConversationType = conversation.ConversationType,
                             LastMessage = new MessageResponse()
                             {
+                                MessageId = msg.MessageId,
                                 SenderId = msg.SenderId,
                                 Content = msg.Content,
                                 MessageType = msg.MessageType,
@@ -231,9 +235,9 @@ namespace chatable.Controllers
                     //get last msg
                     var msgResponse = await client.From<Message>().Where(x => x.MessageId == conversation.LastMessage).Get();
                     var msg = msgResponse.Models.FirstOrDefault();
-                    if (msg is null)
+                    if (msg == null)
                     {
-                        throw new Exception();
+                        msg = new Message() { };
                     }
 
                     return Ok(new ApiResponse
@@ -246,6 +250,7 @@ namespace chatable.Controllers
                             ConversationType = conversation.ConversationType,
                             LastMessage = new MessageResponse()
                             {
+                                MessageId = msg.MessageId,
                                 SenderId = msg.SenderId,
                                 Content = msg.Content,
                                 MessageType = msg.MessageType,
