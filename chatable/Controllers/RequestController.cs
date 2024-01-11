@@ -1,10 +1,13 @@
 ﻿using chatable.Contacts.Requests;
 using chatable.Contacts.Responses;
+using chatable.Hubs;
 using chatable.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.SignalR;
 using Supabase;
 using System.Security.Claims;
+using static MailKit.Net.Imap.ImapEvent;
 
 namespace chatable.Controllers
 {
@@ -12,6 +15,13 @@ namespace chatable.Controllers
     [ApiController]
     public class RequestController : Controller
     {
+        private readonly IHubContext<MessagesHub> _hubContext;
+
+        public RequestController(IHubContext<MessagesHub> hubContext)
+        {
+            _hubContext = hubContext;
+        }
+
         [HttpPost]
         public async Task<IActionResult> SendRequest(FriendRequest friendRequest, [FromServices] Client client)
         {
@@ -49,6 +59,22 @@ namespace chatable.Controllers
                     Status = "Pending",
                     SentAt = DateTime.Now,
                 };
+
+                //send realtime req
+                var requestRes = new RequestResponse
+                {
+                    SenderId = user.UserName,
+                    Status = "Pending",
+                    SentAt = DateTime.Now,
+                    ReceiverId = friendRequest.ReceiverId
+                };
+                var connectionRes = await client.From<Connection>().Where(x => x.UserId == friendRequest.ReceiverId).Get();
+                var receiver = connectionRes.Models.FirstOrDefault();
+                await _hubContext
+                        .Clients
+                        .Client(receiver.ConnectionId)
+                        .SendAsync("FriendRequestReceived", requestRes);
+
                 var response = await client.From<Request>().Insert(request);
                 return Ok(new ApiResponse
                 {
@@ -113,6 +139,22 @@ namespace chatable.Controllers
                     };
                     var updateFriend1 = await client.From<Friend>().Insert(friend1);
                     var updateFriend2 = await client.From<Friend>().Insert(friend2);
+
+                    //send realtime req
+                    var requestRes = new RequestResponse
+                    {
+                        SenderId = res.SenderId,
+                        Status = res.Status,
+                        SentAt = res.SentAt,
+                        ReceiverId = res.ReceiverId
+                    };
+                    var connectionRes = await client.From<Connection>().Where(x => x.UserId == res.SenderId).Get();
+                    var receiver = connectionRes.Models.FirstOrDefault();
+                    await _hubContext
+                            .Clients
+                            .Client(receiver.ConnectionId)
+                            .SendAsync("FriendRequestAccepted", requestRes);
+
                     return Ok(new ApiResponse
                     {
                         Success = true,
