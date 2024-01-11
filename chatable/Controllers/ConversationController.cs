@@ -301,9 +301,32 @@ namespace chatable.Controllers
 
                 foreach (var message in messages)
                 {
+                    //get reaction list
+                    var msgId = message.MessageId.ToString();
+                    var reactionRes = await client.From<Reaction>().Where(x => x.MessageId == msgId).Get();
+                    var reactions = reactionRes.Models;
+
                     //get sender info
                     var userResponse = await client.From<User>().Where(x => x.UserName == message.SenderId).Get();
                     var user = userResponse.Models.FirstOrDefault();
+
+                    List<ReactionResponse> reactionsResponse = new List<ReactionResponse>();
+                    foreach (var reaction in reactions)
+                    {
+                        //get sender reaction
+                        var reacterResponse = await client.From<User>().Where(x => x.UserName == reaction.SenderId).Get();
+                        var reacter = reacterResponse.Models.FirstOrDefault();
+
+                        reactionsResponse.Add(new ReactionResponse()
+                        {
+                            SenderId = reaction.SenderId,
+                            MessageId = reaction.MessageId,
+                            Type = reaction.Type,
+                            ConversationId = message.ConversationId,
+                            SenderName = reacter.FullName,
+                            SenderAvatar = reacter.Avatar
+                        });
+                    }
 
                     listMessage.Add(new MessageResponse()
                     {
@@ -313,7 +336,8 @@ namespace chatable.Controllers
                         SenderId = message.SenderId,
                         SentAt = message.SentAt,
                         SenderName = user.FullName,
-                        SenderAvatar = GetFileName(user.Avatar)
+                        SenderAvatar = GetFileName(user.Avatar),
+                        Reactions = reactionsResponse
                     });
                 }
                 listMessage.Sort((m1, m2) => m1.SentAt.CompareTo(m2.SentAt));
