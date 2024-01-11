@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Build.Graph;
 using Supabase;
+using Supabase.Interfaces;
 using System;
 using System.Security.Claims;
 using System.Security.Cryptography;
@@ -84,6 +85,19 @@ namespace chatable.Controllers
                 var responseOwnerPart = await client.From<GroupParticipants>().Insert(ownerParticipant);
 
                 StoreGroupConnection(client, randomId);
+
+                //create group conversation
+                await client
+                    .From<Conversation>()
+                    .Insert(new Conversation
+                    {
+                        ConversationId = randomId,
+                        ConversationType = "Group",
+                        LastMessage = Guid.Empty,
+                        UnreadMessageCount = 0
+                    }
+                    );
+
                 return Ok(new ApiResponse
                 {
                     Success = true,
