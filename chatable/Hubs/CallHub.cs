@@ -20,7 +20,8 @@ namespace chatable.Hubs
 		public void AddMapping(string username)
 		{
             CallMapping.map[username] = Context.ConnectionId;
-			foreach (var kvp in CallMapping.map)
+            Console.WriteLine(username + " đã connect vào CALL");
+            foreach (var kvp in CallMapping.map)
 			{
 				Console.WriteLine($"Key: {kvp.Key}, Value: {kvp.Value}");
 			}
@@ -39,6 +40,9 @@ namespace chatable.Hubs
 			{
                 Console.WriteLine("SendCallTo " + receiverId);
                 await Clients.Client(CallMapping.map[receiverId]).SendAsync("inviteCall", Context.ConnectionId, callerInfo, typeCall, roomId);
+            } else
+			{
+				await Clients.Caller.SendAsync("receiverResponse", "offline");
             }
         }
 
@@ -48,23 +52,29 @@ namespace chatable.Hubs
             await Clients.Client(callerConnectionId).SendAsync("receiverResponse", response);
         }
 
-        public async Task SendMissingCallMessageTo(string receiverId, string callerId) {
-            // Console.Wri teLine("SendMissingCallMessageTo " + receiverId);
-            await Clients.Client(CallMapping.map[receiverId]).SendAsync("missingCall", callerId);
-        }
+		public async Task SendMissingCallMessageTo(string receiverId, string callerId) {
+				if (CallMapping.map.ContainsKey(receiverId))
+			{
+				await Clients.Client(CallMapping.map[receiverId]).SendAsync("missingCall", callerId);
+			}
+		}
 
 		public override Task OnDisconnectedAsync(Exception? exception)
 		{
-            if (CallMapping.map.ContainsKey(Context.ConnectionId))
-            {
-                CallMapping.map.Remove(Context.ConnectionId);
-            }
-            
-			//Console.WriteLine($"---> {Context.ConnectionId} left the call-hub");
-			//foreach (var kvp in CallMapping.map)
-			//{
-			//	Console.WriteLine($"Key: {kvp.Key}, Value: {kvp.Value}");
-			//}
+			foreach (var kvp in CallMapping.map)
+			{
+				if (kvp.Value == Context.ConnectionId)
+				{
+                    Console.WriteLine($"---> {kvp.Key} left the CALL");
+                    CallMapping.map.Remove(kvp.Key);
+					break;
+                }
+			}
+			
+			foreach (var kvp in CallMapping.map)
+			{
+				Console.WriteLine($"Key: {kvp.Key}, Value: {kvp.Value}");
+			}
 			return base.OnDisconnectedAsync(exception);
 		}
 	}

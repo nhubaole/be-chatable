@@ -429,10 +429,10 @@ namespace chatable.Controllers
                     var insertedMsg = responseInsertMsg.Models.FirstOrDefault();
 
                     //update conversation
-                    await client.From<Conversation>()
-                      .Where(x => x.ConversationId == conversationId)
-                      .Set(x => x.LastMessage, insertedMsg.MessageId)
-                      .Update();
+                    //await client.From<Conversation>()
+                    //  .Where(x => x.ConversationId == conversationId)
+                    //  .Set(x => x.LastMessage, insertedMsg.MessageId)
+                    //  .Update();
                 }
                 else
                 {
@@ -494,10 +494,10 @@ namespace chatable.Controllers
                     var responseInsertMsg = await client.From<Message>().Insert(message);
                     var insertedMsg = responseInsertMsg.Models.FirstOrDefault();
 
-                    await client.From<Conversation>()
-                                   .Where(x => x.ConversationId == ConversationId)
-                                   .Set(x => x.LastMessage, insertedMsg.MessageId)
-                                   .Update();
+                    //await client.From<Conversation>()
+                    //               .Where(x => x.ConversationId == ConversationId)
+                    //               .Set(x => x.LastMessage, insertedMsg.MessageId)
+                    //               .Update();
                 }
                 
                 return Ok(new ApiResponse

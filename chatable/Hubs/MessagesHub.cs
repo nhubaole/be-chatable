@@ -68,7 +68,7 @@ namespace chatable.Hubs
             var responseInsertMsg = await _supabaseClient.From<Message>().Insert(message);
             var insertedMsg = responseInsertMsg.Models.FirstOrDefault();
 
-            updateConversation(conversationId, insertedMsg);
+            // updateConversation(conversationId, insertedMsg);
         }
 
         public async Task SendGroupMessage(String groupId, String messageType, String content)
@@ -113,7 +113,7 @@ namespace chatable.Hubs
             var responseInsertMsg = await _supabaseClient.From<Message>().Insert(message);
             var insertedMsg = responseInsertMsg.Models.FirstOrDefault();
 
-            updateConversation(conversationId, insertedMsg);
+            // updateConversation(conversationId, insertedMsg);
         }
 
         public async Task<String> getConversationId(String senderId, String receiverId)
@@ -268,7 +268,7 @@ namespace chatable.Hubs
             var userId = Context.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             var userConnectionId = Context.ConnectionId;
             if (userId is null) return;
-            Console.WriteLine($"---> {userId} just joined the chat");
+            // Console.WriteLine($"---> {userId} just joined the chat");
 
             var updateRes = await _supabaseClient
                                 .From<Connection>()
@@ -309,7 +309,7 @@ namespace chatable.Hubs
             var userId = Context.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             //var username = Context.User.Identity.Name;
             if (userId is null) return;
-            Console.WriteLine($"---> {userId} left the chat right now");
+            // Console.WriteLine($"---> {userId} left the chat right now");
             var updateStatusRes = await _supabaseClient
                                 .From<Connection>()
                                 .Where(x => x.UserId == userId)
