@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using chatable.Models;
+using System.ComponentModel.DataAnnotations;
 
 namespace chatable.Contacts.Responses
 {
@@ -17,5 +18,6 @@ namespace chatable.Contacts.Responses
         public string GroupId { get; set; }
         public string SenderName { get; set; }
         public string SenderAvatar { get; set; }
+        public List<ReactionResponse> Reactions { get; set; }
     }
 }
