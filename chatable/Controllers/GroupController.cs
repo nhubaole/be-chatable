@@ -1,10 +1,12 @@
 ﻿using chatable.Contacts.Requests;
 using chatable.Contacts.Responses;
 using chatable.Helper;
+using chatable.Hubs;
 using chatable.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.Build.Graph;
 using Supabase;
 using Supabase.Interfaces;
@@ -18,6 +20,13 @@ namespace chatable.Controllers
     [ApiController]
     public class GroupController : Controller
     {
+        private readonly IHubContext<MessagesHub> _hubContext;
+
+        public GroupController(IHubContext<MessagesHub> hubContext)
+        {
+            _hubContext = hubContext;
+        }
+
         [HttpPost]
         [Authorize]
         public async Task<ActionResult<Group>> CreateGroup(CreateGroupRequest request, [FromServices] Client client)
@@ -68,8 +77,19 @@ namespace chatable.Controllers
                     Avatar = "https://goexjtmckylmpnrbxtcn.supabase.co/storage/v1/object/public/groups-avatar/group-default.png"
                 };
                 var responseGroup = await client.From<Group>().Insert(Group);
+
+                var groupConnection = new GroupConnection()
+                {
+                    ConnectionId = Guid.NewGuid().ToString(),
+                    GroupId = randomId,
+                };
+                var groupConnectionRes = await client.From<GroupConnection>().Insert(groupConnection);
+
                 foreach (var member in request.MemberList)
                 {
+                    var userConnectionRes = await client.From<Connection>().Where(x => x.UserId == member).Get();
+                    var userConnection = userConnectionRes.Models.FirstOrDefault();
+                    await _hubContext.Groups.AddToGroupAsync(userConnection.ConnectionId, groupConnection.ConnectionId);
                     var GroupParticipants = new GroupParticipants
                     {
                         GroupId = randomId,
@@ -84,19 +104,39 @@ namespace chatable.Controllers
                 };
                 var responseOwnerPart = await client.From<GroupParticipants>().Insert(ownerParticipant);
 
-                StoreGroupConnection(client, randomId);
-
                 //create group conversation
+                var newConversation = new Conversation
+                {
+                    ConversationId = randomId,
+                    ConversationType = "Group",
+                    LastMessage = Guid.Empty,
+                    UnreadMessageCount = 0
+                };
                 await client
                     .From<Conversation>()
-                    .Insert(new Conversation
+                    .Insert(newConversation);
+
+                //alert
+                var msg = new Message();
+                var newResConversation = new ConversationResponse()
+                {
+                    ConversationId = newConversation.ConversationId,
+                    ConversationType = newConversation.ConversationType,
+                    LastMessage = new MessageResponse()
                     {
-                        ConversationId = randomId,
-                        ConversationType = "Group",
-                        LastMessage = Guid.Empty,
-                        UnreadMessageCount = 0
-                    }
-                    );
+                        MessageId = msg.MessageId,
+                        SenderId = msg.SenderId,
+                        Content = msg.Content,
+                        MessageType = msg.MessageType,
+                        SentAt = msg.SentAt,
+                    },
+                    ConversationName = Group.GroupName,
+                    ConversationAvatar = GetFileName(Group.Avatar)
+                };
+                await _hubContext
+                        .Clients
+                        .Group(groupConnection.ConnectionId)
+                        .SendAsync("NewConversationReceived", newResConversation);
 
                 return Ok(new ApiResponse
                 {

@@ -10,7 +10,6 @@ using Microsoft.IdentityModel.Tokens;
 using Supabase;
 using System;
 using System.Security.Claims;
-using System.Text.RegularExpressions;
 using static MailKit.Net.Imap.ImapEvent;
 
 namespace chatable.Hubs
@@ -53,7 +52,7 @@ namespace chatable.Hubs
             .Client(receiver.ConnectionId)
             .SendAsync("MessageReceived", messageRes);
 
-            String conversationId = await getConversationId(senderId, receiver.UserId);
+            String conversationId = await getConversationId(senderId, receiver.UserId, receiver);
 
             Message message = new Message()
             {
@@ -98,7 +97,7 @@ namespace chatable.Hubs
             .GroupExcept(receiver.ConnectionId, Context.ConnectionId)
             .SendAsync("MessageReceivedFromGroup", messageRes);
 
-            String conversationId = await getGroupConversationId(receiver.GroupId);
+            String conversationId = await getGroupConversationId(receiver.GroupId, receiver, Context.ConnectionId);
 
             Message message = new Message()
             {
@@ -116,7 +115,7 @@ namespace chatable.Hubs
             // updateConversation(conversationId, insertedMsg);
         }
 
-        public async Task<String> getConversationId(String senderId, String receiverId)
+        public async Task<String> getConversationId(String senderId, String receiverId, Connection receiverConnection)
         {
             try
             {
@@ -143,6 +142,29 @@ namespace chatable.Hubs
                         UnreadMessageCount = 0
                     }
                     );
+                    //alert
+                    var msg = new Message();
+                    var userResponse = await _supabaseClient.From<User>().Where(x => x.UserName == senderId).Get();
+                    User user = userResponse.Models.FirstOrDefault();
+                    var newResConversation = new ConversationResponse()
+                    {
+                        ConversationId = user.UserName,
+                        ConversationType = "Peer",
+                        LastMessage = new MessageResponse()
+                        {
+                            MessageId = msg.MessageId,
+                            SenderId = msg.SenderId,
+                            Content = msg.Content,
+                            MessageType = msg.MessageType,
+                            SentAt = msg.SentAt,
+                        },
+                        ConversationName = user.FullName,
+                        ConversationAvatar = GetFileName(user.Avatar)
+                    };
+                    await Clients
+                          .Client(receiverConnection.ConnectionId)
+                          .SendAsync("NewConversationReceived", newResConversation);
+
                     return $"{senderId}_{receiverId}";
                 }
             }
@@ -154,7 +176,7 @@ namespace chatable.Hubs
             }
         }
 
-        public async Task<String> getGroupConversationId(String groupId)
+        public async Task<String> getGroupConversationId(String groupId, GroupConnection groupConnection, String currConnection)
         {
             try
             {
@@ -179,6 +201,29 @@ namespace chatable.Hubs
                         UnreadMessageCount = 0
                     }
                     );
+                    //alert
+                    var msg = new Message();
+                    var groupResponse = await _supabaseClient.From<Group>().Where(x => x.GroupId == groupId).Get();
+                    Group group = groupResponse.Models.FirstOrDefault();
+                    var newResConversation = new ConversationResponse()
+                    {
+                        ConversationId = groupId,
+                        ConversationType = "Group",
+                        LastMessage = new MessageResponse()
+                        {
+                            MessageId = msg.MessageId,
+                            SenderId = msg.SenderId,
+                            Content = msg.Content,
+                            MessageType = msg.MessageType,
+                            SentAt = msg.SentAt,
+                        },
+                        ConversationName = group.GroupName,
+                        ConversationAvatar = GetFileName(group.Avatar)
+                    };
+                    await Clients
+                            .GroupExcept(groupConnection.ConnectionId, currConnection)
+                            .SendAsync("NewConversationReceived", newResConversation);
+
                     return groupId;
                 }
             }
