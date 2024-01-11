@@ -5,6 +5,7 @@ using chatable.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.SignalR;
+using Org.BouncyCastle.Asn1.Ocsp;
 using Supabase;
 using System.Security.Claims;
 
@@ -399,17 +400,41 @@ namespace chatable.Controllers
                     }
                     else
                     {
-                        await client
-                        .From<Conversation>()
-                        .Insert(
-                        new Conversation
+                        var newConversation = new Conversation
                         {
                             ConversationId = $"{senderId}_{receiver.UserId}",
                             ConversationType = "Peer",
                             LastMessage = Guid.Empty,
                             UnreadMessageCount = 0
-                        }
-                        );
+                        };
+                        await client
+                        .From<Conversation>()
+                        .Insert(newConversation);
+
+                        //alert
+                        var msg = new Message();
+                        var userResponse = await client.From<User>().Where(x => x.UserName == senderId).Get();
+                        User user = userResponse.Models.FirstOrDefault();
+                        var newResConversation = new ConversationResponse()
+                        {
+                            ConversationId = user.UserName,
+                            ConversationType = newConversation.ConversationType,
+                            LastMessage = new MessageResponse()
+                            {
+                                MessageId = msg.MessageId,
+                                SenderId = msg.SenderId,
+                                Content = msg.Content,
+                                MessageType = msg.MessageType,
+                                SentAt = msg.SentAt,
+                            },
+                            ConversationName = user.FullName,
+                            ConversationAvatar = GetFileName(user.Avatar)
+                        };
+                        await _hubContext
+                                .Clients
+                                .Client(receiver.ConnectionId)
+                                .SendAsync("NewConversationReceived", newResConversation);
+
                         conversationId = $"{senderId}_{receiver.UserId}";
                     }
 
@@ -467,17 +492,41 @@ namespace chatable.Controllers
                     var conversation = responseCon.Models.FirstOrDefault();
                     if (conversation == null)
                     {
-                        await client
-                        .From<Conversation>()
-                        .Insert(
-                        new Conversation
+                        var newConversation = new Conversation
                         {
                             ConversationId = ConversationId,
                             ConversationType = "Group",
                             LastMessage = Guid.Empty,
                             UnreadMessageCount = 0
-                        }
-                        );
+                        };
+                        await client
+                        .From<Conversation>()
+                        .Insert(newConversation);
+
+                        //alert
+                        var msg = new Message();
+                        var groupResponse = await client.From<Group>().Where(x => x.GroupId == ConversationId).Get();
+                        Group group = groupResponse.Models.FirstOrDefault();
+                        var newResConversation = new ConversationResponse()
+                        {
+                            ConversationId = newConversation.ConversationId,
+                            ConversationType = newConversation.ConversationType,
+                            LastMessage = new MessageResponse()
+                            {
+                                MessageId = msg.MessageId,
+                                SenderId = msg.SenderId,
+                                Content = msg.Content,
+                                MessageType = msg.MessageType,
+                                SentAt = msg.SentAt,
+                            },
+                            ConversationName = group.GroupName,
+                            ConversationAvatar = GetFileName(group.Avatar)
+                        };
+                        await _hubContext
+                                .Clients
+                                .GroupExcept(receiver.ConnectionId, currConnection.ConnectionId)
+                                .SendAsync("NewConversationReceived", newResConversation);
+
                     }
 
                     //set last message

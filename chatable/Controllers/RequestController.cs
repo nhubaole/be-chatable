@@ -192,6 +192,27 @@ namespace chatable.Controllers
                             UnreadMessageCount = 0
                         }
                         );
+                        //alert
+                        var msg = new Message();
+                        var newResConversation = new ConversationResponse()
+                        {
+                            ConversationId = requestRes.UserId,
+                            ConversationType = "Peer",
+                            LastMessage = new MessageResponse()
+                            {
+                                MessageId = msg.MessageId,
+                                SenderId = msg.SenderId,
+                                Content = msg.Content,
+                                MessageType = msg.MessageType,
+                                SentAt = msg.SentAt,
+                            },
+                            ConversationName = requestRes.Name,
+                            ConversationAvatar = requestRes.Avatar,
+                        };
+                        await _hubContext
+                                .Clients
+                                .Client(receiver.ConnectionId)
+                                .SendAsync("NewConversationReceived", newResConversation);
                     }
 
                     return Ok(new ApiResponse
