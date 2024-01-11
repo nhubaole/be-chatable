@@ -10,6 +10,8 @@ using Microsoft.IdentityModel.Tokens;
 using Supabase;
 using System;
 using System.Security.Claims;
+using System.Text.RegularExpressions;
+using static MailKit.Net.Imap.ImapEvent;
 
 namespace chatable.Hubs
 {
@@ -30,13 +32,21 @@ namespace chatable.Hubs
             var senderId = Context.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             var response = await _supabaseClient.From<Connection>().Where(x => x.UserId == toUsername).Get();
             var receiver = response.Models.FirstOrDefault();
+            var msgId = Guid.NewGuid();
+
+            //query sender info
+            var userResponse = await _supabaseClient.From<User>().Where(x => x.UserName == senderId).Get();
+            var user = userResponse.Models.FirstOrDefault();
 
             var messageRes = new MessageResponse()
             {
+                MessageId = msgId,
                 SenderId = senderId,
                 MessageType = messageType,
                 Content = content,
                 SentAt = DateTime.UtcNow,
+                SenderName = user.FullName,
+                SenderAvatar = GetFileName(user.Avatar)
             };
 
             await Clients
@@ -47,7 +57,7 @@ namespace chatable.Hubs
 
             Message message = new Message()
             {
-                MessageId = Guid.NewGuid(),
+                MessageId = msgId,
                 SenderId = messageRes.SenderId,
                 MessageType = messageRes.MessageType,
                 Content = messageRes.Content,
@@ -66,14 +76,22 @@ namespace chatable.Hubs
             var senderId = Context.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             var response = await _supabaseClient.From<GroupConnection>().Where(x => x.GroupId == groupId).Get();
             var receiver = response.Models.FirstOrDefault();
+            var msgId = Guid.NewGuid();
+
+            //query sender info
+            var userResponse = await _supabaseClient.From<User>().Where(x => x.UserName == senderId).Get();
+            var user = userResponse.Models.FirstOrDefault();
 
             var messageRes = new MessageResponse()
             {
+                MessageId = msgId,
                 SenderId = senderId,
                 MessageType = messageType,
                 Content = content,
                 SentAt = DateTime.UtcNow,
-                GroupId = groupId
+                GroupId = groupId,
+                SenderName = user.FullName,
+                SenderAvatar = GetFileName(user.Avatar)
             };
 
             await Clients
@@ -84,7 +102,7 @@ namespace chatable.Hubs
 
             Message message = new Message()
             {
-                MessageId = Guid.NewGuid(),
+                MessageId = msgId,
                 SenderId = messageRes.SenderId,
                 MessageType = messageRes.MessageType,
                 Content = messageRes.Content,
@@ -180,6 +198,70 @@ namespace chatable.Hubs
                    .Update();
         }
 
+        public async Task ReactMessage(String conversationId, String conversationType, String toMsgId, int type)
+        {
+            var senderId = Context.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+            if (conversationType == "Peer")
+            {
+                var response = await _supabaseClient.From<Connection>().Where(x => x.UserId == conversationId).Get();
+                var receiver = response.Models.FirstOrDefault();
+
+                var reactionRes = new ReactionResponse()
+                {
+                    ConversationId = senderId,
+                    MessageId = toMsgId,
+                    Type = type,
+                    SenderId = senderId
+                };
+
+                await Clients
+                .Client(receiver.ConnectionId)
+                .SendAsync("ReactionReceived", reactionRes);
+            }
+            else
+            {
+                var response = await _supabaseClient.From<GroupConnection>().Where(x => x.GroupId == conversationId).Get();
+                var receiver = response.Models.FirstOrDefault();
+
+                var reactionRes = new ReactionResponse()
+                {
+                    ConversationId = conversationId,
+                    MessageId = toMsgId,
+                    Type = type,
+                    SenderId = senderId
+                };
+
+                await Clients
+                   .GroupExcept(receiver.ConnectionId, Context.ConnectionId)
+                   .SendAsync("ReactionReceived", reactionRes);
+            }
+
+            Reaction reaction = new Reaction()
+            {
+                SenderId = senderId,
+                MessageId = toMsgId,
+                Type = type,
+            };
+
+            var getReactionRes = await _supabaseClient.From<Reaction>()
+                                                  .Where(x => x.MessageId == toMsgId && x.SenderId == senderId)
+                                                  .Get();
+            var react = getReactionRes.Models.FirstOrDefault();
+
+            if(react == null)
+            {
+                var responseInsertReaction = await _supabaseClient.From<Reaction>().Insert(reaction);
+            }
+            else
+            {
+                await _supabaseClient.From<Reaction>()
+                   .Where(x => x.MessageId == toMsgId && x.SenderId == senderId)
+                   .Set(x => x.Type, type)
+                   .Update();
+            }
+        }
+
         public override async Task OnConnectedAsync()
         {
             await base.OnConnectedAsync();
@@ -235,6 +317,16 @@ namespace chatable.Hubs
                                 .Update();
         }
 
+        private string GetFileName(string url)
+        {
+            if (url != null)
+            {
+                int lastSlashIndex = url.LastIndexOf('/');
+                string avatarFileName = url.Substring(lastSlashIndex + 1);
+                return avatarFileName;
+            }
+            return null;
+        }
     }
 }
 

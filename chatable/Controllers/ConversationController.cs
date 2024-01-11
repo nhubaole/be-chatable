@@ -60,6 +60,19 @@ namespace chatable.Controllers
                             throw new Exception();
                         }
 
+                        //check isFriend
+                        bool isFriend;
+                        var friendResponse = await client.From<Friend>().Where(x => x.FriendId == conversationId && x.UserId == currentUser.UserName).Get();
+                        var friend = friendResponse.Models.FirstOrDefault();
+                        if (friend != null)
+                        {
+                            isFriend = true;
+                        }
+                        else
+                        {
+                            isFriend = false;
+                        }
+
                         conversationResponses.Add(new ConversationResponse()
                         {
                             ConversationId = conversationId,
@@ -72,7 +85,8 @@ namespace chatable.Controllers
                                 SentAt = msg.SentAt,
                             },
                             ConversationName = user.FullName,
-                            ConversationAvatar = GetFileName(user.Avatar)
+                            ConversationAvatar = GetFileName(user.Avatar),
+                            isFriend = isFriend,
                         });
                     }
                 }
@@ -166,6 +180,19 @@ namespace chatable.Controllers
                         throw new Exception();
                     }
 
+                    //check isFriend
+                    bool isFriend = false;
+                    var friendResponse = await client.From<Friend>().Where(x => x.FriendId == ConversationId && x.UserId == currentUser.UserName).Get();
+                    var friend = friendResponse.Models.FirstOrDefault();
+                    if (friend != null)
+                    {
+                        isFriend = true;
+                    }
+                    else
+                    {
+                        isFriend = false;
+                    }
+
                     return Ok(new ApiResponse
                     {
                         Success = true,
@@ -182,8 +209,8 @@ namespace chatable.Controllers
                                 SentAt = msg.SentAt,
                             },
                             ConversationName = user.FullName,
-                            ConversationAvatar = GetFileName(user.Avatar)
-
+                            ConversationAvatar = GetFileName(user.Avatar),
+                            isFriend = isFriend,
                         }
                     });
                 }
@@ -274,6 +301,7 @@ namespace chatable.Controllers
 
                     listMessage.Add(new MessageResponse()
                     {
+                        MessageId = message.MessageId,
                         Content = message.Content,
                         MessageType = message.MessageType,
                         SenderId = message.SenderId,
@@ -282,6 +310,7 @@ namespace chatable.Controllers
                         SenderAvatar = GetFileName(user.Avatar)
                     });
                 }
+                listMessage.Sort((m1, m2) => m1.SentAt.CompareTo(m2.SentAt));
 
                 return Ok(new ApiResponse
                 {
@@ -334,8 +363,11 @@ namespace chatable.Controllers
                     var response = await client.From<Connection>().Where(x => x.UserId == ConversationId).Get();
                     var receiver = response.Models.FirstOrDefault();
 
+                    var msgId = Guid.NewGuid();
+
                     var messageRes = new MessageResponse()
                     {
+                        MessageId = msgId,
                         SenderId = senderId,
                         MessageType = MessageType,
                         Content = fileUrl,
@@ -380,7 +412,7 @@ namespace chatable.Controllers
                     //add message
                     Message message = new Message()
                     {
-                        MessageId = Guid.NewGuid(),
+                        MessageId = msgId,
                         SenderId = messageRes.SenderId,
                         MessageType = messageRes.MessageType,
                         Content = messageRes.Content,
@@ -404,8 +436,11 @@ namespace chatable.Controllers
                     var response = await client.From<GroupConnection>().Where(x => x.GroupId == ConversationId).Get();
                     var receiver = response.Models.FirstOrDefault();
 
+                    var msgId = Guid.NewGuid();
+
                     var messageRes = new MessageResponse()
                     {
+                        MessageId = msgId,
                         SenderId = senderId,
                         MessageType = MessageType,
                         Content = fileUrl,
@@ -443,7 +478,7 @@ namespace chatable.Controllers
                     //set last message
                     Message message = new Message()
                     {
-                        MessageId = Guid.NewGuid(),
+                        MessageId = msgId,
                         SenderId = messageRes.SenderId,
                         MessageType = messageRes.MessageType,
                         Content = messageRes.Content,
