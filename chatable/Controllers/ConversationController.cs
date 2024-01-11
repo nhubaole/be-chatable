@@ -5,7 +5,6 @@ using chatable.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.SignalR;
-using Org.BouncyCastle.Asn1.Ocsp;
 using Supabase;
 using System.Security.Claims;
 
@@ -586,6 +585,219 @@ namespace chatable.Controllers
                 {
                     Success = false,
                     Message = $"Message not found"
+                });
+            }
+        }
+
+        [HttpPost("Search")]
+        [Authorize]
+        public async Task<ActionResult> GetConversationByKeyword(SearchRequest searchRequest, [FromServices] Client client)
+        {
+            var currentUser = GetCurrentUser();
+            try
+            {
+                //get user info if exists
+                var userResponse = await client.From<User>().Where(x => x.UserName == searchRequest.Keyword).Get();
+                var user = userResponse.Models.FirstOrDefault();
+
+                if (user != null)
+                {
+                    //get conversation
+                    String opt1 = currentUser.UserName + "_" + user.UserName;
+                    String opt2 = user.UserName + "_" + currentUser.UserName;
+                    var responseCon = await client.From<Conversation>()
+                                                      .Where(x => x.ConversationId == opt1 || x.ConversationId == opt2)
+                                                      .Get();
+                    var conversation = responseCon.Models.FirstOrDefault();
+
+                    ConversationResponse conversationResponse;
+                    if (conversation != null)
+                    {
+                        //check isFriend
+                        bool isFriend = false;
+                        var friendResponse = await client.From<Friend>().Where(x => x.FriendId == user.UserName && x.UserId == currentUser.UserName).Get();
+                        var friend = friendResponse.Models.FirstOrDefault();
+                        if (friend != null)
+                        {
+                            isFriend = true;
+                        }
+                        else
+                        {
+                            isFriend = false;
+                        }
+
+                        //get last msg
+                        var msgResponse = await client.From<Message>().Where(x => x.MessageId == conversation.LastMessage).Get();
+                        var msg = msgResponse.Models.FirstOrDefault();
+                        if(msg == null)
+                        {
+                            msg = new Message();
+                        }
+
+                        conversationResponse = new ConversationResponse()
+                        {
+                            ConversationId = conversation.ConversationId,
+                            ConversationType = conversation.ConversationType,
+                            LastMessage = new MessageResponse()
+                            {
+                                MessageId = msg.MessageId,
+                                SenderId = msg.SenderId,
+                                Content = msg.Content,
+                                MessageType = msg.MessageType,
+                                SentAt = msg.SentAt,
+                            },
+                            ConversationName = user.FullName,
+                            ConversationAvatar = GetFileName(user.Avatar),
+                            isFriend = isFriend,
+                        };
+                    }
+                    else
+                    {
+                        var msg = new Message();
+                        conversationResponse = new ConversationResponse()
+                        {
+                            ConversationId = opt1,
+                            ConversationType = "Peer",
+                            LastMessage = new MessageResponse()
+                            {
+                                MessageId = msg.MessageId,
+                                SenderId = msg.SenderId,
+                                Content = msg.Content,
+                                MessageType = msg.MessageType,
+                                SentAt = msg.SentAt,
+                            },
+                            ConversationName = user.FullName,
+                            ConversationAvatar = GetFileName(user.Avatar),
+                            isFriend = false,
+                        };
+                    }
+
+                    return Ok(new ApiResponse
+                    {
+                        Success = true,
+                        Message = "Search conversation successfully.",
+                        Data = conversationResponse
+                    });
+
+                }
+                else
+                {
+                    List<ConversationResponse> conversationResponses = new List<ConversationResponse>();
+
+                    var response = await client.From<Conversation>().Where(x => x.ConversationId.Contains($"_{currentUser.UserName}") || x.ConversationId.Contains($"{currentUser.UserName}_")).Get();
+                    var conversations = response.Models;
+
+                    if (conversations != null)
+                    {
+                        foreach (var conversation in conversations)
+                        {
+                            string conversationId = conversation.ConversationId;
+                            if (conversationId.Contains($"_{currentUser.UserName}"))
+                            {
+                                conversationId = conversationId.Replace($"_{currentUser.UserName}", "");
+                            }
+                            if (conversationId.Contains($"{currentUser.UserName}_"))
+                            {
+                                conversationId = conversationId.Replace($"{currentUser.UserName}_", "");
+                            }
+
+                            //get user infor
+                            var userResponse2 = await client.From<User>().Where(x => x.UserName == conversationId).Get();
+                            var user2 = userResponse2.Models.FirstOrDefault();
+
+                            if (user2.FullName.Contains(searchRequest.Keyword))
+                            {
+                                //get last message
+                                var msgResponse = await client.From<Message>().Where(x => x.MessageId == conversation.LastMessage).Get();
+                                var msg = msgResponse.Models.FirstOrDefault();
+                                if (msg == null)
+                                {
+                                    msg = new Message() { };
+                                }
+
+                                conversationResponses.Add(new ConversationResponse()
+                                {
+                                    ConversationId = conversationId,
+                                    ConversationType = conversation.ConversationType,
+                                    LastMessage = new MessageResponse()
+                                    {
+                                        MessageId = msg.MessageId,
+                                        SenderId = msg.SenderId,
+                                        Content = msg.Content,
+                                        MessageType = msg.MessageType,
+                                        SentAt = msg.SentAt,
+                                    },
+                                    ConversationName = user2.FullName,
+                                    ConversationAvatar = GetFileName(user2.Avatar),
+                                    isFriend = true,
+                                });
+                            }
+                        }
+                    }
+
+                    var resGroups = await client.From<GroupParticipants>().Where(x => x.MemberId == currentUser.UserName).Get();
+                    var groups = resGroups.Models;
+                    if (groups != null)
+                    {
+                        foreach (var group in groups)
+                        {
+                            var responseGroupCons = await client.From<Conversation>().Where(x => x.ConversationId == group.GroupId).Get();
+                            var groupConversation = responseGroupCons.Models.FirstOrDefault();
+
+                            if (groupConversation != null)
+                            {
+                                //get group info
+                                var res = await client.From<Group>().Where(x => x.GroupId == group.GroupId).Get();
+                                var groupResponse = res.Models.FirstOrDefault();
+
+                                if(groupResponse != null && groupResponse.GroupName.Contains(searchRequest.Keyword))
+                                {
+                                    //get last message
+                                    var msgResponse = await client.From<Message>().Where(x => x.MessageId == groupConversation.LastMessage).Get();
+                                    var msg = msgResponse.Models.FirstOrDefault();
+                                    if (msg == null)
+                                    {
+                                        msg = new Message() { };
+                                    }
+
+                                    conversationResponses.Add(new ConversationResponse()
+                                    {
+                                        ConversationId = groupConversation.ConversationId,
+                                        ConversationType = groupConversation.ConversationType,
+                                        LastMessage = new MessageResponse()
+                                        {
+                                            MessageId = msg.MessageId,
+                                            SenderId = msg.SenderId,
+                                            Content = msg.Content,
+                                            MessageType = msg.MessageType,
+                                            SentAt = msg.SentAt,
+                                        },
+                                        ConversationName = groupResponse.GroupName,
+                                        ConversationAvatar = GetFileName(groupResponse.Avatar)
+
+                                    });
+                                }
+                            }
+                        }
+                    }
+
+                    var sortedConversations = conversationResponses.OrderByDescending(conversation => conversation.LastMessage.SentAt).ToList();
+
+                    return Ok(new ApiResponse
+                    {
+                        Success = true,
+                        Message = "Successfuly",
+                        Data = sortedConversations
+                    });
+                }
+                
+            }
+            catch (Exception e)
+            {
+                return NotFound(new ApiResponse
+                {
+                    Success = false,
+                    Message = $"Exception: {e}"
                 });
             }
         }
