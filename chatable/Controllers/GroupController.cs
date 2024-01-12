@@ -97,6 +97,9 @@ namespace chatable.Controllers
                     };
                     var responseGroupPart = await client.From<GroupParticipants>().Insert(GroupParticipants);
                 }
+                var ownerConnectionRes = await client.From<Connection>().Where(x => x.UserId == currentUser.UserName).Get();
+                var ownerConnection = ownerConnectionRes.Models.FirstOrDefault();
+                await _hubContext.Groups.AddToGroupAsync(ownerConnection.ConnectionId, groupConnection.ConnectionId);
                 var ownerParticipant = new GroupParticipants
                 {
                     GroupId = randomId,
