@@ -209,6 +209,7 @@ namespace chatable.Controllers
                             },
                             ConversationName = requestRes.Name,
                             ConversationAvatar = requestRes.Avatar,
+                            isFriend = true
                         };
                         await _hubContext
                                 .Clients
@@ -238,6 +239,7 @@ namespace chatable.Controllers
                             },
                             ConversationName = sender.FullName,
                             ConversationAvatar = GetFileName(sender.Avatar),
+                            isFriend = true
                         };
                         await _hubContext
                                 .Clients
