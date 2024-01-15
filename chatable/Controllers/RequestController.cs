@@ -426,6 +426,49 @@ namespace chatable.Controllers
             }
         }
 
+        [HttpGet("Status/{UserID}")]
+        [Authorize]
+        public async Task<ActionResult> GetStatusRequest(string UserID, [FromServices] Client client)
+        {
+            try
+            {
+                var currentUser = GetCurrentUser();
+                var request = await client.From<Request>().Where(x => (x.SenderId == currentUser.UserName && x.ReceiverId == UserID)).Get();
+                if(request.Models.Count == 0)
+                {
+                    request = await client.From<Request>().Where(x => (x.SenderId == UserID && x.ReceiverId == currentUser.UserName)).Get(); 
+                }
+
+                var res = request.Models.FirstOrDefault();
+
+                if (res != null)
+                {
+                    var response = new StatusResponse()
+                    {
+                        SenderID = res.SenderId,
+                        Status = res.Status,
+                        ReceiverID = res.ReceiverId,
+                    };
+
+                    return Ok(new ApiResponse
+                    {
+                        Success = true,
+                        Data = response,
+                        Message = $"Get state request successful",
+                    });
+                }
+                throw new Exception();
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new ApiResponse
+                {
+                    Success = false,
+                    Message = ex.Message
+                });
+            }
+        }
+
         private User GetCurrentUser()
         {
             var identity = HttpContext.User.Identity as ClaimsIdentity;
