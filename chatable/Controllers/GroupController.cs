@@ -157,6 +157,7 @@ namespace chatable.Controllers
                 });
             }
         }
+        
         [HttpGet]
         [Authorize]
         public async Task<IActionResult> GetGroups([FromServices] Client client)

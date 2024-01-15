@@ -14,7 +14,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("chatable")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+c8ce9f2570f47222a555b711331f12ce6cd51502")]
 [assembly: System.Reflection.AssemblyProductAttribute("chatable")]
 [assembly: System.Reflection.AssemblyTitleAttribute("chatable")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
