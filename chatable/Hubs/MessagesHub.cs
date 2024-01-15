@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.Build.Experimental.ProjectCache;
 using Microsoft.IdentityModel.Tokens;
+using Microsoft.VisualBasic.FileIO;
 using Supabase;
 using System;
 using System.Security.Claims;
@@ -47,6 +48,8 @@ namespace chatable.Hubs
                 SenderName = user.FullName,
                 SenderAvatar = GetFileName(user.Avatar)
             };
+
+            Console.WriteLine("messageRes.SenderAvatar: " + messageRes.SenderAvatar);
 
             await Clients
             .Client(receiver.ConnectionId)

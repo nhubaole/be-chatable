@@ -30,131 +30,139 @@ namespace chatable.Controllers
         [HttpPost]
         [Authorize]
         public async Task<ActionResult<Group>> CreateGroup(CreateGroupRequest request, [FromServices] Client client)
-        {
-            var currentUser = GetCurrentUser();
-            try
-            {
-                var res = await client.From<User>().Get();
-                List<User> records = res.Models;
-                foreach (var member in request.MemberList)
-                {
-                    if (!records.Any(x => x.UserName == member))
-                    {
-                        return NotFound(new ApiResponse
-                        {
-                            Success = false,
-                            Message = "Member is not exist."
-                        });
-                    }
-                }
+		{
+			var currentUser = GetCurrentUser();
+			try
+			{
+				var res = await client.From<User>().Get();
+				List<User> records = res.Models;
+				foreach (var member in request.MemberList)
+				{
+					if (!records.Any(x => x.UserName == member))
+					{
+						return NotFound(new ApiResponse
+						{
+							Success = false,
+							Message = "Member is not exist."
+						});
+					}
+				}
 
-                List<string> distinctMemberList = request.MemberList.Distinct().ToList();
-                if (distinctMemberList.Count != request.MemberList.Count)
-                {
-                    return BadRequest(new ApiResponse
-                    {
-                        Success = false,
-                        Message = "Must not duplicate member."
-                    });
-                }
+				List<string> distinctMemberList = request.MemberList.Distinct().ToList();
+				if (distinctMemberList.Count != request.MemberList.Count)
+				{
+					return BadRequest(new ApiResponse
+					{
+						Success = false,
+						Message = "Must not duplicate member."
+					});
+				}
 
-                if (request.MemberList.Count <= 1)
-                {
-                    return BadRequest(new ApiResponse
-                    {
-                        Success = false,
-                        Message = "Member in group must be greater than 2."
-                    });
-                }
+				if (request.MemberList.Count <= 1)
+				{
+					return BadRequest(new ApiResponse
+					{
+						Success = false,
+						Message = "Member in group must be greater than 2."
+					});
+				}
 
-                string randomId = Utils.RandomString(8);
-                var Group = new Group
-                {
-                    GroupId = randomId,
-                    GroupName = request.GroupName,
-                    AdminId = currentUser.UserName,
-                    CreatedAt = DateTime.Now,
-                    Avatar = "https://goexjtmckylmpnrbxtcn.supabase.co/storage/v1/object/public/groups-avatar/group-default"
-                };
-                var responseGroup = await client.From<Group>().Insert(Group);
+				string randomId = Utils.RandomString(8);
+				var Group = new Group
+				{
+					GroupId = randomId,
+					GroupName = request.GroupName,
+					AdminId = currentUser.UserName,
+					CreatedAt = DateTime.Now,
+					Avatar = "https://goexjtmckylmpnrbxtcn.supabase.co/storage/v1/object/public/groups-avatar/group-default"
+				};
+				var responseGroup = await client.From<Group>().Insert(Group);
 
-                var groupConnection = new GroupConnection()
-                {
-                    ConnectionId = Guid.NewGuid().ToString(),
-                    GroupId = randomId,
-                };
-                var groupConnectionRes = await client.From<GroupConnection>().Insert(groupConnection);
+				var groupConnection = new GroupConnection()
+				{
+					ConnectionId = Guid.NewGuid().ToString(),
+					GroupId = randomId,
+				};
+				var groupConnectionRes = await client.From<GroupConnection>().Insert(groupConnection);
 
-                foreach (var member in request.MemberList)
-                {
-                    var userConnectionRes = await client.From<Connection>().Where(x => x.UserId == member).Get();
-                    var userConnection = userConnectionRes.Models.FirstOrDefault();
-                    await _hubContext.Groups.AddToGroupAsync(userConnection.ConnectionId, groupConnection.ConnectionId);
-                    var GroupParticipants = new GroupParticipants
-                    {
-                        GroupId = randomId,
-                        MemberId = member
-                    };
-                    var responseGroupPart = await client.From<GroupParticipants>().Insert(GroupParticipants);
-                }
-                var ownerParticipant = new GroupParticipants
-                {
-                    GroupId = randomId,
-                    MemberId = currentUser.UserName
-                };
-                var responseOwnerPart = await client.From<GroupParticipants>().Insert(ownerParticipant);
+				foreach (var member in request.MemberList)
+				{
+					var userConnectionRes = await client.From<Connection>().Where(x => x.UserId == member).Get();
+					var userConnection = userConnectionRes.Models.FirstOrDefault();
+					await _hubContext.Groups.AddToGroupAsync(userConnection.ConnectionId, groupConnection.ConnectionId);
+					Console.WriteLine("memberConnection: " + userConnection.ConnectionId);
+					var GroupParticipants = new GroupParticipants
+					{
+						GroupId = randomId,
+						MemberId = member
+					};
+					var responseGroupPart = await client.From<GroupParticipants>().Insert(GroupParticipants);
+				}
+				var ownerConnectionRes = await client.From<Connection>().Where(x => x.UserId == currentUser.UserName).Get();
+				var ownerConnection = ownerConnectionRes.Models.FirstOrDefault();
+                await _hubContext.Groups.AddToGroupAsync(ownerConnection.ConnectionId, groupConnection.ConnectionId);
+				Console.WriteLine("ownerConnection: " + ownerConnection.ConnectionId);
+				var ownerParticipant = new GroupParticipants
+				{
+					GroupId = randomId,
+					MemberId = currentUser.UserName
+				};
+				var responseOwnerPart = await client.From<GroupParticipants>().Insert(ownerParticipant);
 
-                //create group conversation
-                var newConversation = new Conversation
-                {
-                    ConversationId = randomId,
-                    ConversationType = "Group",
-                    LastMessage = Guid.Empty,
-                    UnreadMessageCount = 0
-                };
-                await client
-                    .From<Conversation>()
-                    .Insert(newConversation);
+				//create group conversation
+				var newConversation = new Conversation
+				{
+					ConversationId = randomId,
+					ConversationType = "Group",
+					LastMessage = Guid.Empty,
+					UnreadMessageCount = 0
+				};
+				await client
+					.From<Conversation>()
+					.Insert(newConversation);
 
-                //alert
-                var msg = new Message();
-                var newResConversation = new ConversationResponse()
-                {
-                    ConversationId = newConversation.ConversationId,
-                    ConversationType = newConversation.ConversationType,
-                    LastMessage = new MessageResponse()
-                    {
-                        MessageId = msg.MessageId,
-                        SenderId = msg.SenderId,
-                        Content = msg.Content,
-                        MessageType = msg.MessageType,
-                        SentAt = msg.SentAt,
-                    },
-                    ConversationName = Group.GroupName,
-                    ConversationAvatar = GetFileName(Group.Avatar)
-                };
-                await _hubContext
-                        .Clients
-                        .Group(groupConnection.ConnectionId)
-                        .SendAsync("NewConversationReceived", newResConversation);
+				//alert
+				var msg = new Message();
+				var newResConversation = new ConversationResponse()
+				{
+					ConversationId = newConversation.ConversationId,
+					ConversationType = newConversation.ConversationType,
+					LastMessage = new MessageResponse()
+					{
+						MessageId = msg.MessageId,
+						SenderId = msg.SenderId,
+						Content = msg.Content,
+						MessageType = msg.MessageType,
+						SentAt = msg.SentAt,
+					},
+					ConversationName = Group.GroupName,
+					ConversationAvatar = GetFileName(Group.Avatar)
+				};
 
-                return Ok(new ApiResponse
-                {
-                    Success = true,
-                    Message = "Create group successful.",
-                    Data = randomId
-                });
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(new ApiResponse
-                {
-                    Success = false,
-                    Message = ex.Message
-                });
-            }
-        }
-        [HttpGet]
+                Console.WriteLine("Send newResConversation: " + newResConversation.ConversationName);
+				await _hubContext
+						.Clients
+						.Group(groupConnection.ConnectionId)
+						.SendAsync("NewConversationReceived", newResConversation);
+
+				return Ok(new ApiResponse
+				{
+					Success = true,
+					Message = "Create group successful.",
+					Data = randomId
+				});
+			}
+			catch (Exception ex)
+			{
+				return BadRequest(new ApiResponse
+				{
+					Success = false,
+					Message = ex.Message
+				});
+			}
+		}
+
+		[HttpGet]
         [Authorize]
         public async Task<IActionResult> GetGroups([FromServices] Client client)
         {

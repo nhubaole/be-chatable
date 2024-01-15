@@ -27,6 +27,7 @@ namespace chatable.Controllers
         [HttpPost]
         public async Task<IActionResult> SendRequest(FriendRequest friendRequest, [FromServices] Client client)
         {
+            Console.WriteLine("SendFriendRequest");
             try
             {
                 var currentUser = GetCurrentUser();

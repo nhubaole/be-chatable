@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.SignalR;
 using Supabase;
+using Supabase.Interfaces;
 using System.Security.Claims;
 
 namespace chatable.Controllers
@@ -371,10 +372,13 @@ namespace chatable.Controllers
                 var lastIndexOfDot = file.FileName.LastIndexOf('.');
                 string extension = file.FileName.Substring(lastIndexOfDot + 1);
                 string updatedTime = DateTime.Now.ToString("yyyy-dd-MM-HH-mm-ss");
-                string fileName = $"message-{currentUser.UserName}-{updatedTime}.{extension}";
+                string fileName = MessageType == "file" ? file.FileName : $"message-{currentUser.UserName}-{updatedTime}.{extension}";
+
+                // Console.WriteLine("File Name: " + file.FileName);
+
                 await client.Storage.From("message-file").Upload(
                     memoryStream.ToArray(),
-                   fileName,
+                    fileName,
                     new Supabase.Storage.FileOptions
                     {
                         CacheControl = "3600",
@@ -385,6 +389,8 @@ namespace chatable.Controllers
 
                 Uri uri = new Uri(fileUrl);
 
+
+
                 if(Type == "Peer")
                 {
                     //send peer msg
@@ -394,10 +400,16 @@ namespace chatable.Controllers
 
                     var msgId = Guid.NewGuid();
 
+                    //query sender info
+                    var userResponse = await client.From<User>().Where(x => x.UserName == senderId).Get();
+                    var user = userResponse.Models.FirstOrDefault();
+
                     var messageRes = new MessageResponse()
                     {
                         MessageId = msgId,
                         SenderId = senderId,
+                        SenderName = user.FullName,
+                        SenderAvatar = GetFileName(user.Avatar),
                         MessageType = MessageType,
                         Content = fileUrl,
                         SentAt = DateTime.UtcNow,
@@ -414,8 +426,8 @@ namespace chatable.Controllers
                     String opt1 = senderId + "_" + receiver.UserId;
                     String opt2 = receiver.UserId + "_" + senderId;
                     var responseCon = await client.From<Conversation>()
-                                                      .Where(x => x.ConversationId == opt1 || x.ConversationId == opt2)
-                                                      .Get();
+                                                   .Where(x => x.ConversationId == opt1 || x.ConversationId == opt2)
+                                                   .Get();
                     var conversation = responseCon.Models.FirstOrDefault();
                     if (conversation != null)
                     {
@@ -436,8 +448,11 @@ namespace chatable.Controllers
 
                         //alert
                         var msg = new Message();
-                        var userResponse = await client.From<User>().Where(x => x.UserName == senderId).Get();
-                        User user = userResponse.Models.FirstOrDefault();
+
+                        //query sender info
+                        userResponse = await client.From<User>().Where(x => x.UserName == senderId).Get();
+                        user = userResponse.Models.FirstOrDefault();
+
                         var newResConversation = new ConversationResponse()
                         {
                             ConversationId = user.UserName,
@@ -491,10 +506,16 @@ namespace chatable.Controllers
 
                     var msgId = Guid.NewGuid();
 
+                    //query sender info
+                    var userResponse = await client.From<User>().Where(x => x.UserName == senderId).Get();
+                    var user = userResponse.Models.FirstOrDefault();
+
                     var messageRes = new MessageResponse()
                     {
                         MessageId = msgId,
                         SenderId = senderId,
+                        SenderName = user.FullName,
+                        SenderAvatar = GetFileName(user.Avatar),
                         MessageType = MessageType,
                         Content = fileUrl,
                         SentAt = DateTime.UtcNow,
