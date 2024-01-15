@@ -194,8 +194,58 @@ namespace chatable.Controllers
                 });
             }
         }
-        // [HttpGet("{GroupId}")]
+        [HttpGet("{GroupId}")]
+        public async Task<IActionResult> GetGroup(string GroupId, [FromServices] Client client)
+        {
+            //var currentUser = GetCurrentUser();
+            try
+            {
+                var response = await client.From<GroupParticipants>().Where(x => x.GroupId == GroupId).Get();
+                var res = await client.From<Group>().Where(x => x.GroupId == GroupId).Get();
+                var groupResponse = res.Models.FirstOrDefault();
+                groupResponse.Avatar = GetFileName(groupResponse.Avatar);
+                var groupParticipants = response.Models;
 
+                List<MemberResponse> listMember = new List<MemberResponse>();
+                foreach (var participant in groupParticipants)
+                {
+                    var memberRes = await client.From<User>().Where(x => x.UserName == participant.MemberId).Get();
+                    var member = memberRes.Models.FirstOrDefault();
+                    var memberParticipants = new MemberResponse
+                    {
+                        UserName = member.UserName,
+                        FullName = member.FullName,
+                        Avatar = member.Avatar
+                    };
+                    listMember.Add(memberParticipants);
+
+                }
+
+                var groupReturn = new GroupDetailRequest()
+                {
+                    GroupId = GroupId,
+                    GroupName = groupResponse.GroupName,
+                    Avatar = groupResponse.Avatar,
+                    AdminId = groupResponse.AdminId,
+                    ListMember = listMember,
+                };
+
+                return Ok(new ApiResponse
+                {
+                    Success = true,
+                    Message = $"Get group {GroupId} in all groups successful.",
+                    Data = groupReturn
+                });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new ApiResponse
+                {
+                    Success = false,
+                    Data = ex.Message
+                });
+            }
+        }
         [HttpGet("{GroupId}/Member")]
         // [Authorize]
         public async Task<IActionResult> GetMembers(string GroupId, [FromServices] Client client)

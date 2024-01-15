@@ -1,20 +1,24 @@
 {
   "format": 1,
   "restore": {
-    "C:\\Users\\PC\\Desktop\\SE310\\be-chatable\\chatable\\chatable.csproj": {}
+    "D:\\BC\\be-chatable\\chatable\\chatable.csproj": {}
   },
   "projects": {
-    "C:\\Users\\PC\\Desktop\\SE310\\be-chatable\\chatable\\chatable.csproj": {
+    "D:\\BC\\be-chatable\\chatable\\chatable.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Users\\PC\\Desktop\\SE310\\be-chatable\\chatable\\chatable.csproj",
+        "projectUniqueName": "D:\\BC\\be-chatable\\chatable\\chatable.csproj",
         "projectName": "chatable",
-        "projectPath": "C:\\Users\\PC\\Desktop\\SE310\\be-chatable\\chatable\\chatable.csproj",
-        "packagesPath": "C:\\Users\\PC\\.nuget\\packages\\",
-        "outputPath": "C:\\Users\\PC\\Desktop\\SE310\\be-chatable\\chatable\\obj\\",
+        "projectPath": "D:\\BC\\be-chatable\\chatable\\chatable.csproj",
+        "packagesPath": "C:\\Users\\Umi's lap\\.nuget\\packages\\",
+        "outputPath": "D:\\BC\\be-chatable\\chatable\\obj\\",
         "projectStyle": "PackageReference",
+        "fallbackFolders": [
+          "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
+        ],
         "configFilePaths": [
-          "C:\\Users\\PC\\AppData\\Roaming\\NuGet\\NuGet.Config",
+          "C:\\Users\\Umi's lap\\AppData\\Roaming\\NuGet\\NuGet.Config",
+          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
           "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
         ],
         "originalTargetFrameworks": [
@@ -22,14 +26,15 @@
         ],
         "sources": {
           "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
+          "C:\\Program Files\\dotnet\\library-packs": {},
           "https://api.nuget.org/v3/index.json": {}
         },
         "frameworks": {
           "net7.0": {
             "targetAlias": "net7.0",
             "projectReferences": {
-              "C:\\Users\\PC\\Desktop\\SE310\\be-chatable\\EmailService\\EmailService.csproj": {
-                "projectPath": "C:\\Users\\PC\\Desktop\\SE310\\be-chatable\\EmailService\\EmailService.csproj"
+              "D:\\BC\\be-chatable\\EmailService\\EmailService.csproj": {
+                "projectPath": "D:\\BC\\be-chatable\\EmailService\\EmailService.csproj"
               }
             }
           }
@@ -108,21 +113,25 @@
               "privateAssets": "all"
             }
           },
-          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\8.0.100\\RuntimeIdentifierGraph.json"
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\7.0.403\\RuntimeIdentifierGraph.json"
         }
       }
     },
-    "C:\\Users\\PC\\Desktop\\SE310\\be-chatable\\EmailService\\EmailService.csproj": {
+    "D:\\BC\\be-chatable\\EmailService\\EmailService.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Users\\PC\\Desktop\\SE310\\be-chatable\\EmailService\\EmailService.csproj",
+        "projectUniqueName": "D:\\BC\\be-chatable\\EmailService\\EmailService.csproj",
         "projectName": "EmailService",
-        "projectPath": "C:\\Users\\PC\\Desktop\\SE310\\be-chatable\\EmailService\\EmailService.csproj",
-        "packagesPath": "C:\\Users\\PC\\.nuget\\packages\\",
-        "outputPath": "C:\\Users\\PC\\Desktop\\SE310\\be-chatable\\EmailService\\obj\\",
+        "projectPath": "D:\\BC\\be-chatable\\EmailService\\EmailService.csproj",
+        "packagesPath": "C:\\Users\\Umi's lap\\.nuget\\packages\\",
+        "outputPath": "D:\\BC\\be-chatable\\EmailService\\obj\\",
         "projectStyle": "PackageReference",
+        "fallbackFolders": [
+          "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
+        ],
         "configFilePaths": [
-          "C:\\Users\\PC\\AppData\\Roaming\\NuGet\\NuGet.Config",
+          "C:\\Users\\Umi's lap\\AppData\\Roaming\\NuGet\\NuGet.Config",
+          "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
           "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
         ],
         "originalTargetFrameworks": [
@@ -130,6 +139,7 @@
         ],
         "sources": {
           "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
+          "C:\\Program Files\\dotnet\\library-packs": {},
           "https://api.nuget.org/v3/index.json": {}
         },
         "frameworks": {
@@ -173,7 +183,7 @@
               "privateAssets": "all"
             }
           },
-          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\8.0.100\\RuntimeIdentifierGraph.json"
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\7.0.403\\RuntimeIdentifierGraph.json"
         }
       }
     }
