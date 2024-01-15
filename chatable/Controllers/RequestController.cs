@@ -193,9 +193,10 @@ namespace chatable.Controllers
                             UnreadMessageCount = 0
                         }
                         );
+
                         //alert
                         var msg = new Message();
-                        var newResConversation = new ConversationResponse()
+                        var newResConversationSender = new ConversationResponse()
                         {
                             ConversationId = requestRes.UserId,
                             ConversationType = "Peer",
@@ -209,11 +210,42 @@ namespace chatable.Controllers
                             },
                             ConversationName = requestRes.Name,
                             ConversationAvatar = requestRes.Avatar,
+                            isFriend = true
                         };
                         await _hubContext
                                 .Clients
                                 .Client(receiver.ConnectionId)
-                                .SendAsync("NewConversationReceived", newResConversation);
+                                .SendAsync("NewConversationReceived", newResConversationSender);
+
+                        //alert receiver
+                        var receiverConnectionRes = await client.From<Connection>().Where(x => x.UserId == res.ReceiverId).Get();
+                        var receiverConnection = receiverConnectionRes.Models.FirstOrDefault();
+
+                        //get sender info
+                        var senderResponse = await client.From<User>().Where(x => x.UserName == res.SenderId).Get();
+                        var sender = senderResponse.Models.FirstOrDefault();
+
+
+                        var newResConversationReceiver = new ConversationResponse()
+                        {
+                            ConversationId = res.SenderId,
+                            ConversationType = "Peer",
+                            LastMessage = new MessageResponse()
+                            {
+                                MessageId = msg.MessageId,
+                                SenderId = msg.SenderId,
+                                Content = msg.Content,
+                                MessageType = msg.MessageType,
+                                SentAt = msg.SentAt,
+                            },
+                            ConversationName = sender.FullName,
+                            ConversationAvatar = GetFileName(sender.Avatar),
+                            isFriend = true
+                        };
+                        await _hubContext
+                                .Clients
+                                .Client(receiverConnection.ConnectionId)
+                                .SendAsync("NewConversationReceived", newResConversationReceiver);
                     }
 
                     return Ok(new ApiResponse
