@@ -277,10 +277,11 @@ namespace chatable.Controllers
                 var currentUser = GetCurrentUser();
                 var request = await client.From<Request>().Where(x => x.SenderId == SenderID &&
                                                                     x.ReceiverId == currentUser.UserName)
-                                                                   .Set(x => x.Status, "Decline").Update();
-                var res = request.Models.FirstOrDefault();
-                if (res != null)
+                                                                   .Get();
+                if (request.Models.Count != 0)
                 {
+                    await client.From<Request>().Where(x => x.SenderId == SenderID &&
+                                                                    x.ReceiverId == currentUser.UserName).Delete();
                     return Ok(new ApiResponse
                     {
                         Success = true,
