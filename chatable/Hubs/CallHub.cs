@@ -53,13 +53,22 @@ namespace chatable.Hubs
         }
 
 		public async Task SendMissingCallMessageTo(string receiverId, string callerId) {
-				if (CallMapping.map.ContainsKey(receiverId))
+			if (CallMapping.map.ContainsKey(receiverId))
 			{
 				await Clients.Client(CallMapping.map[receiverId]).SendAsync("missingCall", callerId);
 			}
 		}
 
-		public override Task OnDisconnectedAsync(Exception? exception)
+        public async Task SendFinishCallMessageTo(string callerId, string receiverId, string conversationId, string content)
+        {
+			Console.WriteLine("SendFinishCallMessageTo " + receiverId);
+            if (CallMapping.map.ContainsKey(receiverId))
+            {
+                await Clients.Client(CallMapping.map[receiverId]).SendAsync("finishCallMessage", callerId, conversationId, content);
+            }
+        }
+
+        public override Task OnDisconnectedAsync(Exception? exception)
 		{
 			foreach (var kvp in CallMapping.map)
 			{
@@ -77,5 +86,7 @@ namespace chatable.Hubs
 			}
 			return base.OnDisconnectedAsync(exception);
 		}
+
+
 	}
 }

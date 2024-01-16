@@ -44,7 +44,7 @@ namespace chatable.Hubs
                 SenderId = senderId,
                 MessageType = messageType,
                 Content = content,
-                SentAt = DateTime.UtcNow,
+                SentAt = DateTime.Now,
                 SenderName = user.FullName,
                 SenderAvatar = GetFileName(user.Avatar)
             };

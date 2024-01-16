@@ -42,7 +42,7 @@ namespace chatable.Hubs
             // Console.WriteLine(Context.ConnectionId + " has left from Room");
             var room = RoomCall.peersInRoom[roomId];
             room.Remove(Context.ConnectionId);
-
+            // Console.WriteLine("room.Count after peer leave: " + room.Count);
             // Console.WriteLine("Room " + roomId + " count = " + room.Count);
 
             // Console.WriteLine(Context.ConnectionId + " đã rời phòng " + roomId);
